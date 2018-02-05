@@ -14,17 +14,18 @@ import {
 } from 'rxjs/operators';
 
 import {
-    TokenService
-} from './token.service';
+    JwtHelperService
+} from '@auth0/angular-jwt';
 
 // TODO: remove dependency
-export let authURL = 'https://api.aai.ebi.ac.uk';
+let tokenName = 'id_token';
+let authURL = 'https://api.aai.ebi.ac.uk';
 
 export interface Credentials {
     realname: string | null;
     username: string | null;
     token: string | null;
-    expiration: Date | undefined;
+    expiration: Date | null;
 }
 
 interface LoginOptions {
@@ -38,16 +39,16 @@ export class AuthService {
         realname: null,
         username: null,
         token: null,
-        expiration: undefined
+        expiration: null
     }
 
     private _credentials = new BehaviorSubject < Credentials > (AuthService.emptyCredentials);
     public credentials$ = this._credentials.asObservable();
 
-    public realname$ = this.credentials$.pipe(map(credentials  => credentials.realname));
-    public username$ = this.credentials$.pipe(map(credentials  => credentials.username));
-    public token$ = this.credentials$.pipe(map(credentials  => credentials.token));
-    public expiration$ = this.credentials$.pipe(map(credentials  => credentials.expiration));
+    public realname$ = this.credentials$.pipe(map(credentials => credentials.realname));
+    public username$ = this.credentials$.pipe(map(credentials => credentials.username));
+    public token$ = this.credentials$.pipe(map(credentials => credentials.token));
+    public expiration$ = this.credentials$.pipe(map(credentials => credentials.expiration));
 
     private _isAuthenticated = new BehaviorSubject < boolean > (false);
     public isAuthenticated$ = this._isAuthenticated.asObservable();
@@ -59,7 +60,7 @@ export class AuthService {
 
     constructor(
         private rendererFactory: RendererFactory2,
-        private tokener: TokenService,
+        private jwt: JwtHelperService
         // @Inject('AAP_CONFIG') private environment: AuthConfig,
     ) {
         this.domain = encodeURIComponent(window.location.origin);
@@ -76,7 +77,7 @@ export class AuthService {
             if (!this.messageIsAcceptable(event)) {
                 return;
             }
-            this.tokener.saveToken(event.data);
+            localStorage.setItem(tokenName, event.data);
             event.source.close();
             this._updateCredentials();
 
@@ -98,10 +99,9 @@ export class AuthService {
                 window.clearTimeout(this._timeoutID);
             }
             // coercing dates to numbers with the unary operator '+'
-            const delay = +<Date>this.tokener.getExpiration() - +new Date();
+            const delay = + < Date > this.jwt.getTokenExpirationDate() - +new Date();
             this._timeoutID = window.setTimeout(this.logOut.bind(this), delay);
-        }
-        else {
+        } else {
             this._isAuthenticated.next(isAuthenticated);
             this._credentials.next(AuthService.emptyCredentials);
         }
@@ -113,7 +113,11 @@ export class AuthService {
      * authenticated requests or not.
      */
     public loggedIn(): boolean {
-        return !this.tokener.isTokenExpired();
+        try {
+            return !this.jwt.isTokenExpired();
+        } catch (error) {
+            return false
+        }
     }
 
     private _getCredentials(): Credentials {
@@ -125,24 +129,24 @@ export class AuthService {
         };
     }
 
-    public getUserName(): string | null{
-        return this.tokener.getClaim<string, null>('email', null);
+    public getUserName(): string | null {
+        return this.getClaim < string, null > ('email', null);
     }
 
-    public getName(): string | null{
-        return this.tokener.getClaim<string, null>('name', null);
+    public getName(): string | null {
+        return this.getClaim < string, null > ('name', null);
     }
 
-    public getToken(): string {
-        return this.tokener.getToken();
+    public getToken(): string | null {
+        return this.jwt.tokenGetter();
     }
 
-    public getExpiration(): Date | undefined{
-        return this.tokener.getExpiration();
+    public getExpiration(): Date | null {
+        return this.jwt.getTokenExpirationDate();
     }
 
     public logOut(): void {
-        this.tokener.removeToken();
+        localStorage.removeItem(tokenName);
         this._updateCredentials();
         this._logoutCallbacks.map(callback => callback && callback());
         if (this._timeoutID) {
@@ -280,5 +284,21 @@ export class AuthService {
     private messageIsAcceptable(event: MessageEvent): boolean {
         const expectedURL: string = authURL.replace(/\/$/, '');
         return event.origin === expectedURL;
+    }
+
+    /**
+     * Get claims from the token.
+     *
+     * @param {string} The name of the claim
+     * @param {any} The default value in case of error
+     *
+     * @returnType { any } Claim
+     */
+    public getClaim<T, C>(claim:string, defaultValue: C): T|C{
+        try {
+            return <T>this.jwt.decodeToken()[claim];
+        } catch (e) {
+            return defaultValue;
+        }
     }
 }

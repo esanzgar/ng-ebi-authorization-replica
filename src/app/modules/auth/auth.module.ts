@@ -9,33 +9,35 @@ import {
     AuthService
 } from './auth.service';
 import {
-    TokenService
-} from './token.service';
-import {
-//    JwtModule,
+    //    JwtModule,
+    JWT_OPTIONS,
     JwtHelperService
 } from '@auth0/angular-jwt';
 
 export let tokenName = 'id_token';
 
-// export function getToken(): string | null {
-//     return localStorage.getItem(tokenName) || null;
-// }
+export function getToken(): string | null {
+    return localStorage.getItem(tokenName);
+}
 
 @NgModule({
     imports: [
         CommonModule,
-//        JwtModule.forRoot({
-//            config: {
-//                tokenGetter: getToken,
-//                whitelistedDomains: []
-//            }
-//        })
+        //        JwtModule.forRoot({
+        //            config: {
+        //                tokenGetter: getToken,
+        //                whitelistedDomains: []
+        //            }
+        //        })
     ],
     providers: [
         AuthService,
-        TokenService,
+        {
+            provide: JWT_OPTIONS,
+            useValue: {
+                tokenGetter: getToken,
+            }
+        },
         JwtHelperService
     ]
-})
-export class AuthModule {}
+}) export class AuthModule {}
