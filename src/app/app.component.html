@@ -1,0 +1,19 @@
+<!--The content below is only a placeholder and can be replaced.-->
+<div style="text-align:center">
+    <h1>
+        Auth testing app
+    </h1>
+</div>
+<div class="spread">
+    <button (click)="auth.windowOpen({ttl: '1'})">Login small window</button>
+    <button (click)="auth.tabOpen({ttl: '1'})" target="_blank">Login new tab</button>
+    <button (click)="auth.logOut()" target="_blank">Logout</button>
+</div>
+<div>
+    <p>Authenticated: {{ isAuthenticated|async }}</p>
+    <p>Real name: {{ (credentials|async).realname }}</p>
+    <!-- Trying alternative, more direct access -->
+    <p>Username: {{ username|async }}</p>
+    <p>Expiration: {{ (credentials|async).expiration }}</p>
+    <p>Token: {{ (credentials|async).token }}</p>
+</div>
