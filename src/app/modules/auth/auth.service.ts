@@ -4,10 +4,10 @@ import {
 } from '@angular/core';
 import {
     Observable
-} from 'rxjs/observable';
+} from 'rxjs/Observable';
 import {
     BehaviorSubject,
-} from 'rxjs/behaviorsubject';
+} from 'rxjs/BehaviorSubject';
 import {
     filter,
     map

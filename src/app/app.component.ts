@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import {
     Observable,
-} from 'rxjs/observable';
+} from 'rxjs/Observable';
 import {
     map
 } from 'rxjs/operators';
