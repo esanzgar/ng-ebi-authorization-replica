@@ -13,11 +13,7 @@ import {
 } from './modules/auth/auth.module';
 
 export function getToken(): string {
-    const token = localStorage.getItem('id_token');
-    if (token === null){
-        throw Error('Unable to access localStorage token');
-    }
-    return token;
+    return localStorage.getItem('id_token') || '';
 }
 export function removeToken(): void {
     return localStorage.removeItem('id_token');
@@ -30,18 +26,21 @@ export function updateToken(newToken: string): void {
     declarations: [
         AppComponent
     ],
-
     imports: [
         BrowserModule,
-        // AuthModule
-        AuthModule.forRoot({
-            aapURL: 'test',
-            tokenRemover: removeToken,
-            tokenUpdater: updateToken,
-            config: {
-                tokenGetter: getToken,
-            }
-        })
+        AuthModule.forRoot(),
+        // AuthModule.forRoot({
+        //     aapURL: 'https://api.aai.ebi.ac.uk',
+        //     tokenGetter: getToken,
+        //     tokenUpdater: updateToken,
+        //     tokenRemover: removeToken,
+        // }),
+        // JwtModule.forRoot({
+        //     config: {
+        //         tokenGetter: getToken,
+        //         whitelistedDomains: []
+        //     }
+        // })
     ],
     providers: [
     ],
