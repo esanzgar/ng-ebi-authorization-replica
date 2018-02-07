@@ -1,5 +1,6 @@
 import {
     Injectable,
+    Inject,
     RendererFactory2
 } from '@angular/core';
 import {
@@ -14,19 +15,12 @@ import {
 } from 'rxjs/operators';
 
 import {
+    AAP_CONFIG,
+    AuthConfig
+} from './auth.config';
+import {
     JwtHelperService
 } from '@auth0/angular-jwt';
-
-// TODO: remove dependency
-let tokenName = 'id_token';
-let authURL = 'https://api.aai.ebi.ac.uk';
-
-export interface Credentials {
-    realname: string | null;
-    username: string | null;
-    token: string | null;
-    expiration: Date | null;
-}
 
 interface LoginOptions {
     [key: string]: string
@@ -35,125 +29,58 @@ interface LoginOptions {
 @Injectable()
 export class AuthService {
 
-    static emptyCredentials: Credentials = {
-        realname: null,
-        username: null,
-        token: null,
-        expiration: null
-    }
+    private _realname = new BehaviorSubject < string | null > (null);
+    private _realname$ = this._realname.asObservable();
 
-    private _credentials = new BehaviorSubject < Credentials > (AuthService.emptyCredentials);
-    public credentials$ = this._credentials.asObservable();
+    private _username = new BehaviorSubject < string | null > (null);
+    private _username$ = this._username.asObservable();
 
-    public realname$ = this.credentials$.pipe(map(credentials => credentials.realname));
-    public username$ = this.credentials$.pipe(map(credentials => credentials.username));
-    public token$ = this.credentials$.pipe(map(credentials => credentials.token));
-    public expiration$ = this.credentials$.pipe(map(credentials => credentials.expiration));
+    private _token = new BehaviorSubject < string | null > (null);
+    private _token$ = this._token.asObservable();
 
     private _isAuthenticated = new BehaviorSubject < boolean > (false);
-    public isAuthenticated$ = this._isAuthenticated.asObservable();
+    private _isAuthenticated$ = this._isAuthenticated.asObservable();
 
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
+
     private _timeoutID: number;
+
+    // Configuration
     readonly domain: string;
+    readonly aapURL: string;
+    readonly storageUpdater: (newToken: any) => void;
+    readonly storageRemover: () => void;
 
     constructor(
-        private rendererFactory: RendererFactory2,
-        private jwt: JwtHelperService
-        // @Inject('AAP_CONFIG') private environment: AuthConfig,
+        private _rendererFactory: RendererFactory2,
+        private _jwt: JwtHelperService,
+        @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
         this.domain = encodeURIComponent(window.location.origin);
+        this.aapURL = config.aapURL;
+        this.storageRemover = config.tokenRemover;
+        this.storageUpdater = config.tokenUpdater;
 
-        /**
-         * Listen for login messages from other windows and firing the callbacks.
-         * These messages contain the tokens from the AAP.
-         *
-         * @param {Function} callback The Function called when the event with the
-         *    JWT token is received and accepted as valid.
-         */
-        const renderer = rendererFactory.createRenderer(null, null);
-        renderer.listen('window', 'message', (event: MessageEvent) => {
-            if (!this.messageIsAcceptable(event)) {
-                return;
-            }
-            localStorage.setItem(tokenName, event.data);
-            event.source.close();
-            this._updateCredentials();
-
-        });
-
+        this._listenLoginMessage();
         this._updateCredentials();
     }
 
-    private _updateCredentials() {
-        const isAuthenticated = this.loggedIn();
-        if (isAuthenticated) {
-            this._credentials.next(this._getCredentials());
-            this._isAuthenticated.next(isAuthenticated);
-
-            this._loginCallbacks.map(callback => callback && callback());
-
-            // Schedule future logout event base on token expiration
-            if (this._timeoutID) {
-                window.clearTimeout(this._timeoutID);
-            }
-            // coercing dates to numbers with the unary operator '+'
-            const delay = + < Date > this.jwt.getTokenExpirationDate() - +new Date();
-            this._timeoutID = window.setTimeout(this.logOut.bind(this), delay);
-        } else {
-            this._isAuthenticated.next(isAuthenticated);
-            this._credentials.next(AuthService.emptyCredentials);
-        }
+    public isAuthenticated(): Observable < boolean > {
+        return this._isAuthenticated$;
     }
 
-    /**
-     * Check if there's a user logging on and whether the token is still valid.
-     * @returnType { boolean } Whether the application is able to send
-     * authenticated requests or not.
-     */
-    public loggedIn(): boolean {
-        try {
-            return !this.jwt.isTokenExpired();
-        } catch (error) {
-            return false
-        }
+    public realname(): Observable < string | null > {
+        return this._realname$;
     }
 
-    private _getCredentials(): Credentials {
-        return {
-            realname: this.getName(),
-            username: this.getUserName(),
-            token: this.getToken(),
-            expiration: this.getExpiration()
-        };
+    public username(): Observable < string | null > {
+        return this._username$;
     }
 
-    public getUserName(): string | null {
-        return this.getClaim < string, null > ('email', null);
+    public token(): Observable < string | null > {
+        return this._token$;
     }
-
-    public getName(): string | null {
-        return this.getClaim < string, null > ('name', null);
-    }
-
-    public getToken(): string | null {
-        return this.jwt.tokenGetter();
-    }
-
-    public getExpiration(): Date | null {
-        return this.jwt.getTokenExpirationDate();
-    }
-
-    public logOut(): void {
-        localStorage.removeItem(tokenName);
-        this._updateCredentials();
-        this._logoutCallbacks.map(callback => callback && callback());
-        if (this._timeoutID) {
-            window.clearTimeout(this._timeoutID);
-        }
-    }
-
 
     /**
      * Functions that opens a window instead of a tab.
@@ -166,7 +93,7 @@ export class AuthService {
      * @param {number} left Position of the left corners. If it is a negative
      *             number it centres the login window on the screen.
      */
-    public windowOpen(loginOptions ? : LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
+    public windowOpen(loginOptions?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
         if (left < 0) {
             const screenWidth = screen.width;
             if (screenWidth > width) {
@@ -207,7 +134,7 @@ export class AuthService {
      *
      * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
      */
-    public tabOpen(loginOptions ? : LoginOptions) {
+    public tabOpen(loginOptions?: LoginOptions) {
         const loginWindow = window.open(this.getSSOURL(loginOptions), 'Sign in to Elixir');
         if (loginWindow) {
             loginWindow.focus();
@@ -222,12 +149,25 @@ export class AuthService {
      * @returnType { string } The SSO URL.
      *
      */
-    public getSSOURL(options ? : LoginOptions): string {
+    public getSSOURL(options?: LoginOptions): string {
         let extra = '';
         if (options) {
             extra = Object.entries(options).reduce((accumulator, keyvalue) => `${accumulator}&${keyvalue[0]}=${keyvalue[1]}`, '');
         }
-        return `${authURL}/sso?from=${this.domain}${extra}`;
+        return `${this.aapURL}/sso?from=${this.domain}${extra}`;
+    }
+
+    /**
+     * Functions that logs out the user.
+     * It triggers the logout callbacks.
+     */
+    public logOut(): void {
+        this.storageRemover();
+        this._updateCredentials();
+        this._logoutCallbacks.map(callback => callback && callback());
+        if (this._timeoutID) {
+            window.clearTimeout(this._timeoutID);
+        }
     }
 
     /**
@@ -276,14 +216,84 @@ export class AuthService {
         return delete this._logoutCallbacks[index - 1];
     }
 
+    /**
+     * Listen for login messages from other windows.
+     * These messages contain the tokens from the AAP.
+     * If a token is received then the callbacks are triggered.
+     *
+     * @param {Function} callback The Function called when the event with the
+     *    JWT token is received and accepted as valid.
+     */
+    private _listenLoginMessage() {
+        const renderer = this._rendererFactory.createRenderer(null, null);
+        renderer.listen('window', 'message', (event: MessageEvent) => {
+            if (!this.messageIsAcceptable(event)) {
+                return;
+            }
+            this.storageUpdater(event.data);
+            event.source.close();
+            this._updateCredentials();
+
+        });
+    }
 
     /**
      * Check if the message is coming from the same domain we use to generate
      * the SSO URL, otherwise it's iffy and shouldn't trust it.
      */
     private messageIsAcceptable(event: MessageEvent): boolean {
-        const expectedURL: string = authURL.replace(/\/$/, '');
+        const expectedURL: string = this.aapURL.replace(/\/$/, '');
         return event.origin === expectedURL;
+    }
+
+    private _updateCredentials() {
+        const isAuthenticated = this._loggedIn();
+        this._isAuthenticated.next(isAuthenticated);
+
+        if (isAuthenticated) {
+            this._username.next(this._getUserName());
+            this._realname.next(this._getRealName());
+            this._token.next(this._getToken());
+
+            this._loginCallbacks.map(callback => callback && callback());
+
+            // Schedule future logout event base on token expiration
+            if (this._timeoutID) {
+                window.clearTimeout(this._timeoutID);
+            }
+            // Coercing dates to numbers with the unary operator '+'
+            const delay = +this._jwt.getTokenExpirationDate() - +new Date();
+            this._timeoutID = window.setTimeout(this.logOut.bind(this), delay);
+        } else {
+            this._username.next(null);
+            this._realname.next(null);
+            this._token.next(null);
+        }
+    }
+
+    /**
+     * Check if there's a user logging on and whether the token is still valid.
+     * @returnType { boolean } Whether the application is able to send
+     * authenticated requests or not.
+     */
+    private _loggedIn(): boolean {
+        try {
+            return !this._jwt.isTokenExpired();
+        } catch (error) {
+            return false
+        }
+    }
+
+    private _getUserName(): string | null {
+        return this._getClaim < string, null > ('email', null);
+    }
+
+    private _getRealName(): string | null {
+        return this._getClaim < string, null > ('name', null);
+    }
+
+    private _getToken(): string | null {
+        return this._jwt.tokenGetter();
     }
 
     /**
@@ -294,9 +304,9 @@ export class AuthService {
      *
      * @returnType { any } Claim
      */
-    public getClaim<T, C>(claim:string, defaultValue: C): T|C{
+    private _getClaim < T, C > (claim: string, defaultValue: C): T | C {
         try {
-            return <T>this.jwt.decodeToken()[claim];
+            return <T > this._jwt.decodeToken()[claim];
         } catch (e) {
             return defaultValue;
         }

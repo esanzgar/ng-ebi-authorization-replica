@@ -1,6 +1,6 @@
 {
     "name": "angular-aap-auth",
-    "version": "0.2.0",
+    "version": "1.0.0-dev.1",
     "license": "Apache-2.0",
     "scripts": {
         "ng": "ng",

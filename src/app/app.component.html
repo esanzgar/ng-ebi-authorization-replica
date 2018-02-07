@@ -11,9 +11,8 @@
 </div>
 <div>
     <p>Authenticated: {{ isAuthenticated|async }}</p>
-    <p>Real name: {{ (credentials|async).realname }}</p>
-    <!-- Trying alternative, more direct access -->
+    <p>Real name: {{ realname|async }}</p>
     <p>Username: {{ username|async }}</p>
-    <p>Expiration: {{ (credentials|async).expiration }}</p>
-    <p>Token: {{ (credentials|async).token }}</p>
+    <p>Expiration: {{ expiration|async }}</p>
+    <p>Token: {{ token|async }}</p>
 </div>

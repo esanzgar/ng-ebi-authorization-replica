@@ -12,6 +12,19 @@ import {
     AuthModule
 } from './modules/auth/auth.module';
 
+export function getToken(): string {
+    const token = localStorage.getItem('id_token');
+    if (token === null){
+        throw Error('Unable to access localStorage token');
+    }
+    return token;
+}
+export function removeToken(): void {
+    return localStorage.removeItem('id_token');
+}
+export function updateToken(newToken: string): void {
+    return localStorage.setItem('id_token', newToken);
+}
 
 @NgModule({
     declarations: [
@@ -20,9 +33,18 @@ import {
 
     imports: [
         BrowserModule,
-        AuthModule
+        // AuthModule
+        AuthModule.forRoot({
+            aapURL: 'test',
+            tokenRemover: removeToken,
+            tokenUpdater: updateToken,
+            config: {
+                tokenGetter: getToken,
+            }
+        })
     ],
-    providers: [],
+    providers: [
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {}
