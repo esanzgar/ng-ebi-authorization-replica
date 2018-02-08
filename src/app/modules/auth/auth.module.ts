@@ -14,6 +14,9 @@ import {
     AuthService
 } from './auth.service';
 import {
+    TokenService
+} from './token.service';
+import {
     JWT_OPTIONS,
     JwtHelperService
 } from '@auth0/angular-jwt';
@@ -36,6 +39,7 @@ export class AuthModule {
                     useValue: options ? options : DEFAULT_CONF
                 },
                 AuthService,
+                TokenService,
                 {
                     provide: JWT_OPTIONS,
                     useValue: options ? {

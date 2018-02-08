@@ -19,10 +19,10 @@ import {
     AuthConfig
 } from './auth.config';
 import {
-    JwtHelperService
-} from '@auth0/angular-jwt';
+    TokenService
+} from './token.service';
 
-interface LoginOptions {
+export interface LoginOptions {
     [key: string]: string
 }
 
@@ -54,7 +54,7 @@ export class AuthService {
 
     constructor(
         private _rendererFactory: RendererFactory2,
-        private _jwt: JwtHelperService,
+        private _tokenService: TokenService,
         @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
         this.domain = encodeURIComponent(window.location.origin);
@@ -84,6 +84,9 @@ export class AuthService {
 
     /**
      * Functions that opens a window instead of a tab.
+     *
+     * See method _filterLoginOptions regarding security risks of certain
+     * LoginOptions.
      *
      * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
      * @param {number} width Pixel width of the login window.
@@ -132,6 +135,9 @@ export class AuthService {
     /**
      * Functions that opens a tab (in modern browser).
      *
+     * See method _filterLoginOptions regarding security risks of certain
+     * LoginOptions.
+     *
      * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
      */
     public tabOpen(loginOptions?: LoginOptions) {
@@ -146,22 +152,63 @@ export class AuthService {
      * The URL cans be opened in a new tab using target="_blank",
      * or in a new window using window.open().
      *
+     * See method _filterLoginOptions regarding security risks of certain
+     * LoginOptions.
+     *
+     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
+     *
      * @returnType { string } The SSO URL.
      *
      */
     public getSSOURL(options?: LoginOptions): string {
         let extra = '';
         if (options) {
-            extra = Object.entries(options).reduce((accumulator, keyvalue) => `${accumulator}&${keyvalue[0]}=${keyvalue[1]}`, '');
+            this._filterLoginOptions(options);
+            extra = Object.keys(options)
+                .map(key => [key, options[key]])
+                .reduce((accumulator, keyvalue) => `${accumulator}&${keyvalue[0]}=${keyvalue[1]}`, '');
         }
         return `${this.aapURL}/sso?from=${this.domain}${extra}`;
     }
 
     /**
+     * Filters options that are unsecure.
+     *
+     * See the advance options that can be requested through the options parameter:
+     * https://api.aai.ebi.ac.uk/docs/authentication/authentication.index.html#_common_attributes
+     *
+     * The time to live paramenter (ttl) default value is 60 minutes. It is a
+     * big security risk to request longer ttl. If a third party gets hold of
+     * such token, means that they could use it for a day, week, year
+     * (essentially, like having the username/password).
+     *
+     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
+     *
+     * @returnType { void }
+     *
+     */
+    public _filterLoginOptions(options: LoginOptions) {
+        if (Object.keys(options).indexOf('ttl') > -1) {
+            const ttl: number = +options['ttl'];
+            const softLimit = 60;
+            const hardLimit = 60 * 24;
+            if (ttl > hardLimit) {
+                window.console.error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`);
+                window.console.error(`Expiration request reset to ${hardLimit} minutes.`)
+                options['ttl'] = '' + hardLimit;
+            } else if (ttl > softLimit) {
+                window.console.warn(`Login requested with an expiration longer than ${softLimit} minutes!`);
+            }
+        }
+    }
+
+    /**
      * Functions that logs out the user.
      * It triggers the logout callbacks.
+     * It is an arrow function (lambda) because in that way it has a reference
+     * to 'this' when used in setTimeout call.
      */
-    public logOut(): void {
+    public logOut = () => {
         this.storageRemover();
         this._updateCredentials();
         this._logoutCallbacks.map(callback => callback && callback());
@@ -262,8 +309,8 @@ export class AuthService {
                 window.clearTimeout(this._timeoutID);
             }
             // Coercing dates to numbers with the unary operator '+'
-            const delay = +this._jwt.getTokenExpirationDate() - +new Date();
-            this._timeoutID = window.setTimeout(this.logOut.bind(this), delay);
+            const delay = +this._tokenService.getTokenExpirationDate() - +new Date();
+            this._timeoutID = window.setTimeout(this.logOut, delay);
         } else {
             this._username.next(null);
             this._realname.next(null);
@@ -277,38 +324,19 @@ export class AuthService {
      * authenticated requests or not.
      */
     private _loggedIn(): boolean {
-        try {
-            return !this._jwt.isTokenExpired();
-        } catch (error) {
-            return false
-        }
-    }
-
-    private _getUserName(): string | null {
-        return this._getClaim < string, null > ('email', null);
-    }
-
-    private _getRealName(): string | null {
-        return this._getClaim < string, null > ('name', null);
+        return this._tokenService.isTokenValid();
     }
 
     private _getToken(): string | null {
-        return this._jwt.tokenGetter();
+        return this._tokenService.getToken();
     }
 
-    /**
-     * Get claims from the token.
-     *
-     * @param {string} The name of the claim
-     * @param {any} The default value in case of error
-     *
-     * @returnType { any } Claim
-     */
-    private _getClaim < T, C > (claim: string, defaultValue: C): T | C {
-        try {
-            return <T > this._jwt.decodeToken()[claim];
-        } catch (e) {
-            return defaultValue;
-        }
+    private _getUserName(): string | null {
+        return this._tokenService.getClaim < string, null > ('email', null);
     }
+
+    private _getRealName(): string | null {
+        return this._tokenService.getClaim < string, null > ('name', null);
+    }
+
 }
