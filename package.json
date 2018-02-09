@@ -6,8 +6,9 @@
         "ng": "ng",
         "start": "ng serve --aot",
         "build": "ng build --prod --aot",
-        "test": "ng test",
-        "lint": "ng lint",
+        "test": "ng test --config=karma_chrome.conf.js",
+        "test:sr": "ng test --progress=false --single-run=true --code-coverage=true",
+        "lint": "ng lint --type-check",
         "e2e": "ng e2e",
         "packagr": "ng-packagr -p ng-package.json"
     },
@@ -15,7 +16,11 @@
     "keywords": [
         "angular",
         "jwt",
-        "authentication"
+        "authentication",
+        "elixir",
+        "ebi",
+        "aap",
+        "aai"
     ],
     "repository": {
         "type": "git",

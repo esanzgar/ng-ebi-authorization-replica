@@ -6,6 +6,13 @@ import {
 } from '@angular/core';
 
 import {
+    JWT_OPTIONS,
+    JwtHelperService
+} from '@auth0/angular-jwt';
+import {
+    TokenService
+} from './token.service';
+import {
     AuthConfig,
     AAP_CONFIG,
     DEFAULT_CONF
@@ -13,14 +20,6 @@ import {
 import {
     AuthService
 } from './auth.service';
-import {
-    TokenService
-} from './token.service';
-import {
-    JWT_OPTIONS,
-    JwtHelperService
-} from '@auth0/angular-jwt';
-
 
 @NgModule({})
 export class AuthModule {
@@ -35,12 +34,6 @@ export class AuthModule {
         return {
             ngModule: AuthModule,
             providers: [{
-                    provide: AAP_CONFIG,
-                    useValue: options ? options : DEFAULT_CONF
-                },
-                AuthService,
-                TokenService,
-                {
                     provide: JWT_OPTIONS,
                     useValue: options ? {
                         tokenGetter: options.tokenGetter
@@ -48,7 +41,13 @@ export class AuthModule {
                         tokenGetter: DEFAULT_CONF.tokenGetter
                     }
                 },
-                JwtHelperService
+                JwtHelperService,
+                TokenService,
+                {
+                    provide: AAP_CONFIG,
+                    useValue: options ? options : DEFAULT_CONF
+                },
+                AuthService
             ]
         };
     }
