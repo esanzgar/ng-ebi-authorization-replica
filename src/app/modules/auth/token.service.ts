@@ -31,7 +31,7 @@ export class TokenService {
         try {
             return !this._jwt.isTokenExpired();
         } catch (error) {
-            return false
+            return false;
         }
     }
 

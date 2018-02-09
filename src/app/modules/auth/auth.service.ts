@@ -23,7 +23,7 @@ import {
 } from './token.service';
 
 export interface LoginOptions {
-    [key: string]: string
+    [key: string]: string;
 }
 
 @Injectable()
@@ -194,7 +194,7 @@ export class AuthService {
             const hardLimit = 60 * 24;
             if (ttl > hardLimit) {
                 window.console.error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`);
-                window.console.error(`Expiration request reset to ${hardLimit} minutes.`)
+                window.console.error(`Expiration request reset to ${hardLimit} minutes.`);
                 options['ttl'] = '' + hardLimit;
             } else if (ttl > softLimit) {
                 window.console.warn(`Login requested with an expiration longer than ${softLimit} minutes!`);
