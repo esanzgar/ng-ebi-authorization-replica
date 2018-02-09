@@ -1,0 +1,49 @@
+stages:
+  - prepare
+  - test
+  - build
+
+# Needed to launch the image
+variables:
+  USER_ID: "$(id -u)"
+  GROUP_ID: "$(id -g)"
+
+prepare:
+  stage: prepare
+  image: node:alpine
+  script:
+    - yarn
+    - yarn ng -- --version # Display version information
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 hour
+
+test:
+  stage: test
+  image: selenium/node-chrome
+  script:
+    - yarn test:sr
+  artifacts:
+    paths:
+      - coverage/
+    expire_in: 1 week
+
+lint:
+  stage: test
+  image: node:alpine
+  script:
+    - yarn lint
+  allow_failure: true
+
+build:
+  stage: build
+  image: node:alpine
+  script:
+    - yarn build:prod
+  artifacts:
+    name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
+    paths:
+      - dist-lib/
+  only:
+    - master
