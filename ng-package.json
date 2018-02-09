@@ -1,8 +1,11 @@
 {
   "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
-  "name": "testo",
   "lib": {
     "entryFile": "public_api.ts",
+    "externals" :{
+        "@auth0/angular-jwt": "angular-jwt"
+    },
     "licensePath": "LICENSE"
-  }
+  },
+  "dest": "dist-lib"
 }
