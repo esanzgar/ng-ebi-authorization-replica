@@ -1,11 +1,10 @@
 # angular-aap-auth
 
-[![test and build status](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/build.svg)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master 'test and build status')
-[![coverage report](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/coverage.svg?job=test)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master)
 [![npm version](https://badge.fury.io/js/angular-aap-auth.svg)](https://www.npmjs.com/package/angular-aap-auth)
-[//]: # (shiels.io is slow: [![npm version](https://img.shields.io/npm/v/angular-aap-auth)](https://www.npmjs.com/package/angular-aap-auth))
 [![npm downloads](https://img.shields.io/npm/dm/angular-aap-auth.svg)](https://www.npmjs.com/package/angular-aap-auth)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![test and build status](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/build.svg)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master 'test and build status')
+[![coverage report](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/coverage.svg?job=test)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master)
 
 The angular-aap-auth is a simple authentication Angular library that relies on
 EBI's Authentication and Authorization Profile (AAP) infrastructure. After
@@ -181,7 +180,7 @@ import {
 
 import {
     AuthService,
-    TokenService // Only need to inspect other claims in the JWT token
+    TokenService // Only needed to inspect other claims in the JWT token
 } from 'angular-aap-auth';
 
 @Component({
