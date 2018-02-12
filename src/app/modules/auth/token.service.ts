@@ -23,8 +23,12 @@ export class TokenService {
         return this._jwt.tokenGetter();
     }
 
-    public getTokenExpirationDate(): Date {
-        return this._jwt.getTokenExpirationDate();
+    public getTokenExpirationDate(): Date | null {
+        try {
+            return this._jwt.getTokenExpirationDate();
+        } catch (e) {
+            return null;
+        }
     }
 
     public isTokenValid(): boolean {
