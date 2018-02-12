@@ -56,7 +56,7 @@ export class AppModule {}
 ```
 
 The default configuration uses localStorage to save the JWT token under the key
-'id_token'. See [Advance usage](Advance usage) for a more fine grained configuration.
+'id_token'. See [Advance usage](#advance-usage) for a more fine grained configuration.
 
 Example use on a component:
 
@@ -115,7 +115,7 @@ export class AppComponent implements OnInit {
 }
 ```
 
-## Advance uses
+## Advance usage
 
 Advance module configuration:
 
