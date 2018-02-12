@@ -111,7 +111,7 @@ export class AppComponent implements OnInit {
         this.realname = auth.realname();
         this.token = auth.token();
 
-        this.isAuthenticated = (auth.isAuthenticated()).pipe(
+        this.isAuthenticated = auth.isAuthenticated().pipe(
             map(value => value && 'true' || 'false')
         );
     }
@@ -252,4 +252,4 @@ export class AppComponent implements OnInit {
 ## License
 
 Apache 2.0 © [EMBL - European Bioinformatics Institute](https://www.ebi.ac.uk/about/terms-of-use)
-[contributing]: http://github.com/angular/angular/blob/master/CONTRIBUTING.md
+[contributing]: https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/blob/master/CONTRIBUTING.md

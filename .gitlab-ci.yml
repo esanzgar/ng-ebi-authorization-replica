@@ -40,7 +40,7 @@ build:
   stage: build
   image: node:alpine
   script:
-    - yarn build:prod
+    - yarn build
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     paths:
