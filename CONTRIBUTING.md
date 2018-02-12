@@ -30,7 +30,7 @@ yarn
 
 or
 
-npm -i
+npm i
 ```
 
 

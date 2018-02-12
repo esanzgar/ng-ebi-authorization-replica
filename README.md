@@ -12,11 +12,6 @@ EBI's Authentication and Authorization Profile (AAP) infrastructure. After
 successful login, a JWT token is stored on the browser (via cookie, local or
 session storage).
 
-## Want to help?
-
-Want to file a bug, contribute some code, or improve documentation? Excellent!
-Read up on our guidelines for [contributing][contributing].
-
 ## Installation
 
 To install this library, run:
@@ -46,7 +41,7 @@ import {
 } from './app.component';
 import {
     AuthModule
-} from './modules/auth/auth.module';
+} from 'angular-aap-auth';
 
 @NgModule({
     declarations: [
@@ -56,8 +51,7 @@ import {
         BrowserModule,
         AuthModule.forRoot(),
     ],
-    providers: [
-    ],
+    providers: [],
     bootstrap: [AppComponent]
 })
 export class AppModule {}
@@ -81,12 +75,12 @@ import {
 } from 'rxjs/operators';
 
 import {
-    AuthService,
-} from 'angular-aap-auth/auth.service';
+    AuthService
+} from 'angular-aap-auth';
 
 @Component({
     selector: 'app-root',
-    template: `<h1>Welcome</h1>
+    template: `
     <button (click)="auth.windowOpen()">Login small window</button>
     <button (click)="auth.tabOpen()" target="_blank">Login new tab</button>
     <button (click)="auth.logOut()" target="_blank">Logout</button>
@@ -140,7 +134,7 @@ import {
 } from './app.component';
 import {
     AuthModule
-} from './modules/auth/auth.module';
+} from 'angular-aap-auth';
 
 export function getToken(): string {
     return localStorage.getItem('jwt_token') || '';
@@ -165,8 +159,7 @@ export function updateToken(newToken: string): void {
             tokenRemover: removeToken,
         }),
     ],
-    providers: [
-    ],
+    providers: [],
     bootstrap: [AppComponent]
 })
 export class AppModule {}
@@ -188,17 +181,21 @@ import {
 
 import {
     AuthService,
-} from 'angular-aap-auth/auth.service';
-
-// Only need to inspect other claims in the JWT token
-import {
-    TokenService,
-} from 'angular-aap-auth/token.service';
+    TokenService // Only need to inspect other claims in the JWT token
+} from 'angular-aap-auth';
 
 @Component({
     selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    template: `
+    <button (click)="openLoginWindow()">Login small window</button>
+    <button (click)="logOut()" target="_blank">Logout</button>
+
+    <p>Real name: {{ realname|async }}</p>
+    <p>Username: {{ username|async }}</p>
+    <p>Expiration: {{ expiration|async }}</p>
+    <p>ISS: {{ iss|async }}</p>
+    <p>Token: {{ token|async }}</p>
+    `
 })
 export class AppComponent implements OnInit {
     username: Observable < string | null > ;
@@ -207,10 +204,11 @@ export class AppComponent implements OnInit {
 
     // How to obtain other claims
     expiration: Observable < Date | null > ;
+    iss: Observable < string | null > ;
 
     constructor(
         // Public for demonstration purposes
-        public auth: AuthService,
+        private auth: AuthService,
         private jwt: TokenService
     ) {
         this.username = auth.username();
@@ -218,15 +216,23 @@ export class AppComponent implements OnInit {
         this.token = auth.token();
 
         this.expiration = this.token.pipe(
-            map(token => {
-                try {
-                    return jwt.getTokenExpirationDate(<string>token);
-                } catch (e) {
-                    return null;
-                }
-
-            })
+            map(token => jwt.getTokenExpirationDate())
         );
+
+        this.iss = this.token.pipe(
+            map(token => jwt.getClaim < string, null > ('iss', null))
+        );
+    }
+
+    openLoginWindow() {
+        // ttl: time of live, and location
+        this.auth.windowOpen({
+            'ttl': '1'
+        }, 500, 500, 100, 100);
+    }
+
+    logOut() {
+        this.auth.logOut();
     }
 
     ngOnInit() {
@@ -248,6 +254,11 @@ export class AppComponent implements OnInit {
     }
 }
 ```
+
+## Want to help?
+
+Want to file a bug, contribute some code, or improve documentation? Excellent!
+Read up on our guidelines for [contributing][contributing].
 
 ## License
 
