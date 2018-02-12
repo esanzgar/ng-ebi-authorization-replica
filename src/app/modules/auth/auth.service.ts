@@ -308,8 +308,9 @@ export class AuthService {
             if (this._timeoutID) {
                 window.clearTimeout(this._timeoutID);
             }
+            const expireDate = < Date > this._tokenService.getTokenExpirationDate();
             // Coercing dates to numbers with the unary operator '+'
-            const delay = +this._tokenService.getTokenExpirationDate() - +new Date();
+            const delay = +expireDate - +new Date();
             this._timeoutID = window.setTimeout(this.logOut, delay);
         } else {
             this._username.next(null);
