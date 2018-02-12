@@ -1,7 +1,6 @@
 # Contributing to angular-aap-auth
 
-Thanks for your willingness to contribute and help to the angular-aap-auth
-library.
+Thanks for your willingness to contribute to the angular-aap-auth library.
 
 ## Setup
 
@@ -38,8 +37,7 @@ npm -i
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app
-will automatically reload if you change any of the source files.  It is
-recommended to use the git hooks provided:
+will automatically reload if you change any of the source files.
 
 ## Build library
 

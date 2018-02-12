@@ -21,9 +21,9 @@ prepare:
 
 test:
   stage: test
-  image: selenium/node-chrome
+  image: psafont/angular-cli_build
   script:
-    - yarn test:sr
+    - yarn test:sr:chromium
   artifacts:
     paths:
       - coverage/
