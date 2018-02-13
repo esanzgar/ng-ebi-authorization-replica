@@ -7,8 +7,8 @@
         "start": "ng serve --aot",
         "build": "ng build --prod --aot",
         "test": "ng test --config=karma_chrome.conf.js",
-        "test:sr": "ng test --progress=false --single-run=true --code-coverage=true",
-        "test:sr:chromium": "ng test --progress=false --single-run=true --code-coverage=true --config=karma_chromium.conf.js",
+        "test:sr": "ng test --progress=false",
+        "test:sr:chromium": "ng test --progress=false --config=karma_chromium.conf.js",
         "lint": "ng lint --type-check",
         "e2e": "ng e2e",
         "packagr": "ng-packagr -p ng-package.json"

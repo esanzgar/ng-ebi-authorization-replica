@@ -1,6 +1,8 @@
 // Karma configuration file, see link for more information
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
+// Configuration for test:sr:chromium used in gitlab CI
+
 module.exports = function (config) {
   config.set({
     basePath: '',
@@ -19,13 +21,13 @@ module.exports = function (config) {
       fixWebpackSourcePaths: true
     },
     angularCli: {
-      environment: 'dev'
+      environment: 'prod'
     },
-    reporters: ['progress', 'coverage-istanbul'],
+    reporters: ['coverage-istanbul'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
-    autoWatch: true,
+    autoWatch: false,
     browsers: ['ChromiumHeadlessNoSandbox'],
     customLaunchers: {
       ChromiumHeadlessNoSandbox: {
@@ -35,6 +37,6 @@ module.exports = function (config) {
         ]
       }
     },
-    singleRun: false
+    singleRun: true
   });
 };
