@@ -222,7 +222,6 @@ export class AuthService {
      * to 'this' when used in setTimeout call.
      */
     public logOut = () => {
-        this.storageRemover();
         this._updateCredentials();
         this._logoutCallbacks.map(callback => callback && callback());
         if (this._timeoutID) {
@@ -335,6 +334,7 @@ export class AuthService {
             const delay = +expireDate - +new Date();
             this._timeoutID = window.setTimeout(this.logOut, delay);
         } else {
+            this.storageRemover(); // Cleanup possible left behind token
             this._credentials.next(null);
             this._username.next(null);
             this._realname.next(null);
