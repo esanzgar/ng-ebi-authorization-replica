@@ -1,5 +1,5 @@
-<a name="1.0.0-beta.4"></a>
-# [1.0.0-beta.4](https://gitlab.ebi.ac.uk/tools-glue/angular-app-auth/compare/1.0.0-beta.3...1.0.0-beta.4) (2018-02-15)
+<a name="1.0.0-alpha.4"></a>
+# [1.0.0-alpha.4](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.3...1.0.0-alpha.4) (2018-02-15)
 
 ### Features
 
