@@ -67,7 +67,7 @@ export class AuthService {
         @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
         this.domain = encodeURIComponent(window.location.origin);
-        this.aapURL = config.aapURL;
+        this.aapURL = config.aapURL.replace(/\/$/, '');
         this.storageRemover = config.tokenRemover;
         this.storageUpdater = config.tokenUpdater;
 
@@ -222,6 +222,7 @@ export class AuthService {
      * to 'this' when used in setTimeout call.
      */
     public logOut = () => {
+        this.storageRemover();
         this._updateCredentials();
         this._logoutCallbacks.map(callback => callback && callback());
         if (this._timeoutID) {
@@ -301,8 +302,7 @@ export class AuthService {
      * the SSO URL, otherwise it's iffy and shouldn't trust it.
      */
     private messageIsAcceptable(event: MessageEvent): boolean {
-        const expectedURL: string = this.aapURL.replace(/\/$/, '');
-        return event.origin === expectedURL;
+        return event.origin === this.aapURL;
     }
 
     private _updateCredentials() {
