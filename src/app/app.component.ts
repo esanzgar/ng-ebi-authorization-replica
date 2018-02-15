@@ -11,6 +11,7 @@ import {
 
 import {
     AuthService,
+    Credentials
 } from 'app/modules/auth/auth.service';
 import {
     JwtHelperService,
@@ -22,6 +23,9 @@ import {
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
+    credentials: Observable< Credentials | null>;
+
+    // More specific
     username: Observable < string | null > ;
     realname: Observable < string | null > ;
     token: Observable < string | null > ;
@@ -35,6 +39,8 @@ export class AppComponent implements OnInit {
         public auth: AuthService,
         private jwt: JwtHelperService
     ) {
+        this.credentials = auth.credentials();
+
         this.username = auth.username();
         this.realname = auth.realname();
         this.token = auth.token();

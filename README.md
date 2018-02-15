@@ -68,6 +68,56 @@ import {
 import {
     Observable,
 } from 'rxjs/Observable';
+
+import {
+    AuthService,
+    Credentials
+} from 'angular-aap-auth';
+
+@Component({
+    selector: 'app-root',
+    template: `
+    <button (click)="auth.windowOpen()">Login small window</button>
+    <button (click)="auth.tabOpen()" target="_blank">Login new tab</button>
+    <button (click)="auth.logOut()" target="_blank">Logout</button>
+
+    <div *ngIf="(credentials | async) as user; else loggedOut">
+        <p>Real name: {{ user.realname }}</p>
+        <p>Username: {{ user.username }}</p>
+        <p>Token: {{ user.token }}</p>
+    </div>
+    <ng-template #loggedOut>
+        <p>Please, log in.</p>
+    </ng-template>
+    `
+})
+export class AppComponent implements OnInit {
+    credentials: Observable < Credentials | null > ;
+
+    constructor(
+        // Public for demonstration purposes
+        public auth: AuthService,
+    ) {
+        this.credentials = auth.credentials();
+    }
+
+    ngOnInit() {
+        this.auth.addLogInEventListener(() => console.log('Welcome'));
+        this.auth.addLogOutEventListener(() => console.log('Bye'));
+    }
+}
+```
+
+Alternative approach:
+
+```typescript
+import {
+    Component,
+    OnInit
+} from '@angular/core';
+import {
+    Observable,
+} from 'rxjs/Observable';
 import {
     map
 } from 'rxjs/operators';

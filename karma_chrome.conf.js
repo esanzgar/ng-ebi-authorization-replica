@@ -24,8 +24,8 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    // browsers: ['Chrome'],
-    browsers: ['ChromeCanary'],
+    browsers: ['Chrome'],
+    // browsers: ['ChromeCanary'],
     singleRun: false
   });
 };

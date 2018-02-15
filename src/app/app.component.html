@@ -9,6 +9,16 @@
     <button (click)="auth.tabOpen({ttl: '1'})" target="_blank">Login new tab</button>
     <button (click)="auth.logOut()" target="_blank">Logout</button>
 </div>
+<div *ngIf="(credentials | async) as user; else loggedOut">
+    <p>Real name: {{ user.realname }}</p>
+    <p>Username: {{ user.username }}</p>
+    <p>Token: {{ user.token }}</p>
+</div>
+<ng-template #loggedOut>
+    <p>Please, log in.</p>
+</ng-template>
+
+<h3>Alternative approach</h3>
 <div>
     <p>Authenticated: {{ isAuthenticated|async }}</p>
     <p>Real name: {{ realname|async }}</p>

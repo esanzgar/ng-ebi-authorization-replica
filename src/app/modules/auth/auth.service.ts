@@ -26,8 +26,17 @@ export interface LoginOptions {
     [key: string]: string;
 }
 
+export interface Credentials {
+    realname: string;
+    username: string;
+    token: string;
+}
+
 @Injectable()
 export class AuthService {
+
+    private _credentials = new BehaviorSubject < Credentials | null > (null);
+    private _credentials$ = this._credentials.asObservable();
 
     private _realname = new BehaviorSubject < string | null > (null);
     private _realname$ = this._realname.asObservable();
@@ -68,6 +77,10 @@ export class AuthService {
 
     public isAuthenticated(): Observable < boolean > {
         return this._isAuthenticated$;
+    }
+
+    public credentials(): Observable < Credentials | null > {
+        return this._credentials$;
     }
 
     public realname(): Observable < string | null > {
@@ -298,9 +311,18 @@ export class AuthService {
         this._isAuthenticated.next(isAuthenticated);
 
         if (isAuthenticated) {
-            this._username.next(this._getUserName());
-            this._realname.next(this._getRealName());
-            this._token.next(this._getToken());
+            const realname = this._getRealName();
+            const username = this._getUserName();
+            const token = this._getToken();
+
+            this._credentials.next({
+                realname: < string > realname,
+                username: < string > username,
+                token: < string > token
+            });
+            this._realname.next(realname);
+            this._username.next(username);
+            this._token.next(token);
 
             this._loginCallbacks.map(callback => callback && callback());
 
@@ -313,6 +335,7 @@ export class AuthService {
             const delay = +expireDate - +new Date();
             this._timeoutID = window.setTimeout(this.logOut, delay);
         } else {
+            this._credentials.next(null);
             this._username.next(null);
             this._realname.next(null);
             this._token.next(null);
