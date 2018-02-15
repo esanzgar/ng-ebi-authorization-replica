@@ -13,7 +13,7 @@ prepare:
   image: node:alpine
   script:
     - yarn
-    - yarn ng -- --version # Display version information
+    - yarn ng --version # Display version information
   artifacts:
     paths:
       - node_modules/
