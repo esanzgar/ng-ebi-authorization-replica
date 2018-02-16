@@ -1,3 +1,9 @@
+<a name="1.0.0-alpha.6"></a>
+# [1.0.0-alpha.6](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.5...1.0.0-alpha.6) (2018-02-16)
+
+### Features
+* None: published the wrong package into npm
+
 <a name="1.0.0-alpha.5"></a>
 # [1.0.0-alpha.5](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.4...1.0.0-alpha.5) (2018-02-16)
 
