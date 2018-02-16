@@ -6488,6 +6488,13 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
+rxjs-tslint-rules@^3.10.0:
+  version "3.10.0"
+  resolved "https://registry.yarnpkg.com/rxjs-tslint-rules/-/rxjs-tslint-rules-3.10.0.tgz#f3fa6e8aa498cd058e271e1dd28e38a7f06e5cfd"
+  dependencies:
+    resolve "^1.4.0"
+    tslib "^1.8.0"
+
 "rxjs@>=5.5.0 <6.0.0", rxjs@^5.5.6:
   version "5.5.6"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.6.tgz#e31fb96d6fd2ff1fd84bcea8ae9c02d007179c02"
