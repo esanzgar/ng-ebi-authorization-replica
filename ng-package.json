@@ -3,7 +3,9 @@
   "lib": {
     "entryFile": "public_api.ts",
     "externals" :{
-        "@auth0/angular-jwt": "angular-jwt"
+        "@auth0/angular-jwt": "angular-jwt",
+        "rxjs/operators": "Rx.operators"
+
     },
     "licensePath": "LICENSE"
   },
