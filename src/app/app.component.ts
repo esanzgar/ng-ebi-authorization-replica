@@ -63,10 +63,10 @@ export class AppComponent implements OnInit {
 
     ngOnInit() {
         // Demostration of register and unregister login events
+        this.auth.addLogInEventListener(() => alert('Welcome'));
         this.auth.addLogInEventListener(() => console.log('Welcome'));
         const firstEventID = this.auth.addLogInEventListener(() => console.log('This should not be visible'));
         this.auth.removeLogInEventListener(firstEventID);
-        this.auth.addLogInEventListener(() => alert('Welcome'));
         const secondEventID = this.auth.addLogInEventListener(() => alert('This should never be displayed'));
         this.auth.removeLogInEventListener(secondEventID);
 

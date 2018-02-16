@@ -13,13 +13,14 @@ import {
 } from './modules/auth/auth.module';
 
 export function getToken(): string {
-    return localStorage.getItem('id_token') || '';
-}
-export function removeToken(): void {
-    return localStorage.removeItem('id_token');
+    return localStorage.getItem('jwt_token') || '';
 }
 export function updateToken(newToken: string): void {
-    return localStorage.setItem('id_token', newToken);
+    return localStorage.setItem('jwt_token', newToken);
+}
+// Optional
+export function removeToken(): void {
+    return localStorage.removeItem('jwt_token');
 }
 
 @NgModule({
@@ -28,13 +29,13 @@ export function updateToken(newToken: string): void {
     ],
     imports: [
         BrowserModule,
-        AuthModule.forRoot(),
-        // AuthModule.forRoot({
-        //     aapURL: 'https://api.aai.ebi.ac.uk',
-        //     tokenGetter: getToken,
-        //     tokenUpdater: updateToken,
-        //     tokenRemover: removeToken,
-        // }),
+        // AuthModule.forRoot(),
+        AuthModule.forRoot({
+            aapURL: 'https://api.aai.ebi.ac.uk',
+            tokenGetter: getToken,
+            tokenUpdater: updateToken,
+        //     tokenRemover: removeToken  // Optional
+        }),
         // JwtModule.forRoot({
         //     config: {
         //         tokenGetter: getToken,

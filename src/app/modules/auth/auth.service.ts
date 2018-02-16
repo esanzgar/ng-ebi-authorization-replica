@@ -1,7 +1,8 @@
 import {
     Injectable,
     Inject,
-    RendererFactory2
+    RendererFactory2,
+    Renderer2
 } from '@angular/core';
 import {
     Observable
@@ -10,7 +11,6 @@ import {
     BehaviorSubject,
 } from 'rxjs/BehaviorSubject';
 import {
-    filter,
     map
 } from 'rxjs/operators';
 
@@ -36,19 +36,6 @@ export interface Credentials {
 export class AuthService {
 
     private _credentials = new BehaviorSubject < Credentials | null > (null);
-    private _credentials$ = this._credentials.asObservable();
-
-    private _realname = new BehaviorSubject < string | null > (null);
-    private _realname$ = this._realname.asObservable();
-
-    private _username = new BehaviorSubject < string | null > (null);
-    private _username$ = this._username.asObservable();
-
-    private _token = new BehaviorSubject < string | null > (null);
-    private _token$ = this._token.asObservable();
-
-    private _isAuthenticated = new BehaviorSubject < boolean > (false);
-    private _isAuthenticated$ = this._isAuthenticated.asObservable();
 
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
@@ -61,6 +48,11 @@ export class AuthService {
     readonly storageUpdater: (newToken: any) => void;
     readonly storageRemover: () => void;
 
+    // This two properties are used for inter-window communcation.
+    // It is achieve through the update of the dummy key storage 'commKeyName'
+    readonly commKeyName = 'AngularAapAuthUpdated';
+    readonly commKeyUpdater = () => localStorage.setItem(this.commKeyName, '' + new Date().getTime());
+
     constructor(
         private _rendererFactory: RendererFactory2,
         private _tokenService: TokenService,
@@ -68,31 +60,46 @@ export class AuthService {
     ) {
         this.domain = encodeURIComponent(window.location.origin);
         this.aapURL = config.aapURL.replace(/\/$/, '');
-        this.storageRemover = config.tokenRemover;
         this.storageUpdater = config.tokenUpdater;
+        if (config.tokenRemover) {
+            this.storageRemover = config.tokenRemover;
+        } else {
+            this.storageRemover = () => config.tokenUpdater(null);
+        }
 
-        this._listenLoginMessage();
+        const renderer = this._rendererFactory.createRenderer(null, null);
+        this._listenLoginMessage(renderer);
+        this._listenChangesFromOtherWindows(renderer);
+
         this._updateCredentials();
     }
 
     public isAuthenticated(): Observable < boolean > {
-        return this._isAuthenticated$;
+        return this._credentials.asObservable().pipe(
+            map(credentials => credentials ? true : false)
+        );
     }
 
     public credentials(): Observable < Credentials | null > {
-        return this._credentials$;
+        return this._credentials.asObservable();
     }
 
     public realname(): Observable < string | null > {
-        return this._realname$;
+        return this._credentials.asObservable().pipe(
+            map(credentials => credentials ?  credentials.realname : null)
+        );
     }
 
     public username(): Observable < string | null > {
-        return this._username$;
+        return this._credentials.asObservable().pipe(
+            map(credentials => credentials ?  credentials.username : null)
+        );
     }
 
     public token(): Observable < string | null > {
-        return this._token$;
+        return this._credentials.asObservable().pipe(
+            map(credentials => credentials ?  credentials.token : null)
+        );
     }
 
     /**
@@ -173,7 +180,7 @@ export class AuthService {
      * @returnType { string } The SSO URL.
      *
      */
-    public getSSOURL(options?: LoginOptions): string {
+        public getSSOURL(options?: LoginOptions): string {
         let extra = '';
         if (options) {
             this._filterLoginOptions(options);
@@ -221,13 +228,12 @@ export class AuthService {
      * It is an arrow function (lambda) because in that way it has a reference
      * to 'this' when used in setTimeout call.
      */
-    public logOut = () => {
+    public logOut() {
         this.storageRemover();
         this._updateCredentials();
-        this._logoutCallbacks.map(callback => callback && callback());
-        if (this._timeoutID) {
-            window.clearTimeout(this._timeoutID);
-        }
+
+        // Triggers updating other windows
+        this.commKeyUpdater();
     }
 
     /**
@@ -280,12 +286,8 @@ export class AuthService {
      * Listen for login messages from other windows.
      * These messages contain the tokens from the AAP.
      * If a token is received then the callbacks are triggered.
-     *
-     * @param {Function} callback The Function called when the event with the
-     *    JWT token is received and accepted as valid.
      */
-    private _listenLoginMessage() {
-        const renderer = this._rendererFactory.createRenderer(null, null);
+    private _listenLoginMessage(renderer: Renderer2) {
         renderer.listen('window', 'message', (event: MessageEvent) => {
             if (!this.messageIsAcceptable(event)) {
                 return;
@@ -294,6 +296,24 @@ export class AuthService {
             event.source.close();
             this._updateCredentials();
 
+            // Triggers updating other windows
+            this.commKeyUpdater();
+        });
+    }
+
+    /** Listen to changes in the token from *other* windows.
+     *
+     * For inter-window communication messages are transmitted trough changes
+     * on a dummy storage key property: 'commKeyName'.
+     *
+     * Notice that changes in the 'commKeyName' produced by this class doesn't
+     * trigger this event.
+     */
+    private _listenChangesFromOtherWindows(renderer: Renderer2) {
+        renderer.listen('window', 'storage', (event: StorageEvent) => {
+            if (event.key === this.commKeyName) {
+                this._updateCredentials();
+            }
         });
     }
 
@@ -307,38 +327,29 @@ export class AuthService {
 
     private _updateCredentials() {
         const isAuthenticated = this._loggedIn();
-        this._isAuthenticated.next(isAuthenticated);
+
+        if (this._timeoutID) {
+            window.clearTimeout(this._timeoutID);
+        }
 
         if (isAuthenticated) {
-            const realname = this._getRealName();
-            const username = this._getUserName();
-            const token = this._getToken();
-
             this._credentials.next({
-                realname: < string > realname,
-                username: < string > username,
-                token: < string > token
+                realname: < string > this._getRealName(),
+                username: < string > this._getUserName(),
+                token: < string > this._getToken()
             });
-            this._realname.next(realname);
-            this._username.next(username);
-            this._token.next(token);
 
             this._loginCallbacks.map(callback => callback && callback());
 
             // Schedule future logout event base on token expiration
-            if (this._timeoutID) {
-                window.clearTimeout(this._timeoutID);
-            }
             const expireDate = < Date > this._tokenService.getTokenExpirationDate();
             // Coercing dates to numbers with the unary operator '+'
             const delay = +expireDate - +new Date();
-            this._timeoutID = window.setTimeout(this.logOut, delay);
+            this._timeoutID = window.setTimeout(() => this.logOut(), delay);
         } else {
             this.storageRemover(); // Cleanup possible left behind token
             this._credentials.next(null);
-            this._username.next(null);
-            this._realname.next(null);
-            this._token.next(null);
+            this._logoutCallbacks.map(callback => callback && callback());
         }
     }
 

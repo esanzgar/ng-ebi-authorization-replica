@@ -5,7 +5,7 @@ import {
 export interface AuthConfig {
     aapURL: string;
     tokenGetter: () => string;
-    tokenRemover: () => void;
+    tokenRemover?: () => void;
     tokenUpdater: (newToken: any) => void;
 }
 
