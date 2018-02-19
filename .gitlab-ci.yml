@@ -27,7 +27,6 @@ test:
   artifacts:
     paths:
       - coverage/
-    expire_in: 1 week
 
 lint:
   stage: test
@@ -35,6 +34,15 @@ lint:
   script:
     - yarn lint
   allow_failure: true
+
+test:
+  stage: test
+  image: node:alpine
+  script:
+    - yarn docs
+  artifacts:
+    paths:
+      - docs/
 
 build:
   stage: build

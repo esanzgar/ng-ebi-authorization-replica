@@ -42,10 +42,10 @@ export class TokenService {
     /**
      * Get claims from the token.
      *
-     * @param {string} The name of the claim
-     * @param {any} The default value in case of error
+     * @param claim The name of the claim
+     * @param defaultValue The default value returned in case of error
      *
-     * @returnType { any } Claim
+     * @returns claim or default value
      */
     public getClaim < T, C > (claim: string, defaultValue: C): T | C {
         try {

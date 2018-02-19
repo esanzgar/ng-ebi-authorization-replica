@@ -40,7 +40,7 @@ export class AuthService {
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
 
-    private _timeoutID: number;
+    private _timeoutID: number | undefined = undefined;
 
     // Configuration
     readonly domain: string;
@@ -71,7 +71,7 @@ export class AuthService {
         this._listenLoginMessage(renderer);
         this._listenChangesFromOtherWindows(renderer);
 
-        this._updateCredentials();
+        this._updateCredentials(); // TODO: experiment with setTimeOut
     }
 
     public isAuthenticated(): Observable < boolean > {
@@ -108,12 +108,12 @@ export class AuthService {
      * See method _filterLoginOptions regarding security risks of certain
      * LoginOptions.
      *
-     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
-     * @param {number} width Pixel width of the login window.
-     * @param {number} height Pixel height of the login window.
-     * @param {number} top Position of the top corners. If it is a negative
+     * @param loginOptions Options passed as URL parameters to the SSO.
+     * @param width Pixel width of the login window.
+     * @param height Pixel height of the login window.
+     * @param top Position of the top corners. If it is a negative
      *             number it centres the login window on the screen.
-     * @param {number} left Position of the left corners. If it is a negative
+     * @param left Position of the left corners. If it is a negative
      *             number it centres the login window on the screen.
      */
     public windowOpen(loginOptions?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
@@ -158,7 +158,7 @@ export class AuthService {
      * See method _filterLoginOptions regarding security risks of certain
      * LoginOptions.
      *
-     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
+     * @param loginOptions Options passed as URL parameters to the SSO.
      */
     public tabOpen(loginOptions?: LoginOptions) {
         const loginWindow = window.open(this.getSSOURL(loginOptions), 'Sign in to Elixir');
@@ -175,9 +175,9 @@ export class AuthService {
      * See method _filterLoginOptions regarding security risks of certain
      * LoginOptions.
      *
-     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
+     * @param  loginOptions Options passed as URL parameters to the SSO.
      *
-     * @returnType { string } The SSO URL.
+     * @returns The SSO URL.
      *
      */
         public getSSOURL(options?: LoginOptions): string {
@@ -202,9 +202,8 @@ export class AuthService {
      * such token, means that they could use it for a day, week, year
      * (essentially, like having the username/password).
      *
-     * @param {LoginOptions} loginOptions Options passed as URL parameters to the SSO.
+     * @param  loginOptions Options passed as URL parameters to the SSO.
      *
-     * @returnType { void }
      *
      */
     public _filterLoginOptions(options: LoginOptions) {
@@ -239,10 +238,10 @@ export class AuthService {
     /**
      * Add a callback to the LogIn event.
      *
-     * @param {Function} callback The Function called when the login event is triggered and the
+     * @param callback The Function called when the login event is triggered and the
      *    JWT token is received and accepted.
      *
-     * @returnType { number } The event registration id (necessary to unregister the event).
+     * @returns The event registration id (necessary to unregister the event).
      */
     public addLogInEventListener(callback: Function): number {
         return this._loginCallbacks.push(callback);
@@ -251,21 +250,21 @@ export class AuthService {
     /**
      * Remove a callback from the LogIn event.
      *
-     * @param {number} The id given when event listener was added.
+     * @param id The id given when event listener was added.
      *
-     * @returnType { boolean } true when remove successfully, false otherwise.
+     * @returns true when remove successfully, false otherwise.
      */
-    public removeLogInEventListener(index: number): boolean {
-        return delete this._loginCallbacks[index - 1];
+    public removeLogInEventListener(id: number): boolean {
+        return delete this._loginCallbacks[id - 1];
     }
 
     /**
      * Add a callback to the LogOut event.
      *
-     * @param {Function} callback The Function called when the logout event is triggered and the
+     * @param callback The Function called when the logout event is triggered and the
      *    JWT token is received and accepted.
      *
-     * @returnType { number } The registration id (necessary to unregister the event).
+     * @returns The registration id (necessary to unregister the event).
      */
     public addLogOutEventListener(callback: Function): number {
         return this._logoutCallbacks.push(callback);
@@ -274,12 +273,12 @@ export class AuthService {
     /**
      * Remove a callback from the LogOut event.
      *
-     * @param {number} The id given when event listener was added.
+     * @param id The id given when event listener was added.
      *
-     * @returnType { boolean } true when remove successfully, false otherwise.
+     * @returns true when remove successfully, false otherwise.
      */
-    public removeLogOutEventListener(index: number): boolean {
-        return delete this._logoutCallbacks[index - 1];
+    public removeLogOutEventListener(id: number): boolean {
+        return delete this._logoutCallbacks[id - 1];
     }
 
     /**
@@ -355,8 +354,8 @@ export class AuthService {
 
     /**
      * Check if there's a user logging on and whether the token is still valid.
-     * @returnType { boolean } Whether the application is able to send
-     * authenticated requests or not.
+     *
+     * @returns  Whether the user user is authenticated or not.
      */
     private _loggedIn(): boolean {
         return this._tokenService.isTokenValid();
