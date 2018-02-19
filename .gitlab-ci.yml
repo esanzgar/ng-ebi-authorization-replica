@@ -35,7 +35,7 @@ lint:
     - yarn lint
   allow_failure: true
 
-test:
+docs:
   stage: test
   image: node:alpine
   script:
