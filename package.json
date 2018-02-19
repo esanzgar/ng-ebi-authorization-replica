@@ -10,7 +10,7 @@
         "test:sr": "ng test --code-coverage=true --progress=false",
         "test:sr:chromium": "ng test --code-coverage=true --progress=false --config=karma_chromium.conf.js",
         "lint": "ng lint --type-check",
-        "docs": "typedoc --module amd --out docs/ public_api.ts",
+        "docs": "typedoc --module amd --out docs/ src/public_api.ts",
         "e2e": "ng e2e",
         "packagr": "ng-packagr -p ng-package.json"
     },
