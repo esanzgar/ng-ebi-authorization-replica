@@ -35,7 +35,7 @@ export class AppComponent implements OnInit {
     expiration: Observable < Date | null > ;
 
     constructor(
-        // Public for demostration purposes
+        // Public for demonstration purposes
         public auth: AuthService,
         private jwt: JwtHelperService
     ) {
@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
-        // Demostration of register and unregister login events
+        // Demonstration of register and unregister login events
         this.auth.addLogInEventListener(() => alert('Welcome'));
         this.auth.addLogInEventListener(() => console.log('Welcome'));
         const firstEventID = this.auth.addLogInEventListener(() => console.log('This should not be visible'));

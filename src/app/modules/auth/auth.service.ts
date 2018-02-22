@@ -43,28 +43,28 @@ export class AuthService {
     private _timeoutID: number | undefined = undefined;
 
     // Configuration
-    readonly domain: string;
-    readonly aapURL: string;
-    readonly storageUpdater: (newToken: any) => void;
-    readonly storageRemover: () => void;
+    private readonly _domain: string;
+    private readonly _appURL: string;
+    private readonly _storageUpdater: (newToken: any) => void;
+    private readonly _storageRemover: () => void;
 
     // This two properties are used for inter-window communcation.
-    // It is achieve through the update of the dummy key storage 'commKeyName'
-    readonly commKeyName = 'AngularAapAuthUpdated';
-    readonly commKeyUpdater = () => localStorage.setItem(this.commKeyName, '' + new Date().getTime());
+    // It is achieve through the update of the dummy key storage '_commKeyName'
+    private readonly _commKeyName = 'AngularAapAuthUpdated';
+    private readonly _commKeyUpdater = () => localStorage.setItem(this._commKeyName, '' + new Date().getTime());
 
     constructor(
         private _rendererFactory: RendererFactory2,
         private _tokenService: TokenService,
         @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
-        this.domain = encodeURIComponent(window.location.origin);
-        this.aapURL = config.aapURL.replace(/\/$/, '');
-        this.storageUpdater = config.tokenUpdater;
+        this._domain = encodeURIComponent(window.location.origin);
+        this._appURL = config.aapURL.replace(/\/$/, '');
+        this._storageUpdater = config.tokenUpdater;
         if (config.tokenRemover) {
-            this.storageRemover = config.tokenRemover;
+            this._storageRemover = config.tokenRemover;
         } else {
-            this.storageRemover = () => config.tokenUpdater(null);
+            this._storageRemover = () => config.tokenUpdater(null);
         }
 
         const renderer = this._rendererFactory.createRenderer(null, null);
@@ -188,7 +188,7 @@ export class AuthService {
                 .map(key => [key, options[key]])
                 .reduce((accumulator, keyvalue) => `${accumulator}&${keyvalue[0]}=${keyvalue[1]}`, '');
         }
-        return `${this.aapURL}/sso?from=${this.domain}${extra}`;
+        return `${this._appURL}/sso?from=${this._domain}${extra}`;
     }
 
     /**
@@ -228,11 +228,11 @@ export class AuthService {
      * to 'this' when used in setTimeout call.
      */
     public logOut() {
-        this.storageRemover();
+        this._storageRemover();
         this._updateCredentials();
 
         // Triggers updating other windows
-        this.commKeyUpdater();
+        this._commKeyUpdater();
     }
 
     /**
@@ -291,26 +291,26 @@ export class AuthService {
             if (!this.messageIsAcceptable(event)) {
                 return;
             }
-            this.storageUpdater(event.data);
+            this._storageUpdater(event.data);
             event.source.close();
             this._updateCredentials();
 
             // Triggers updating other windows
-            this.commKeyUpdater();
+            this._commKeyUpdater();
         });
     }
 
     /** Listen to changes in the token from *other* windows.
      *
      * For inter-window communication messages are transmitted trough changes
-     * on a dummy storage key property: 'commKeyName'.
+     * on a dummy storage key property: '_commKeyName'.
      *
-     * Notice that changes in the 'commKeyName' produced by this class doesn't
+     * Notice that changes in the '_commKeyName' produced by this class doesn't
      * trigger this event.
      */
     private _listenChangesFromOtherWindows(renderer: Renderer2) {
         renderer.listen('window', 'storage', (event: StorageEvent) => {
-            if (event.key === this.commKeyName) {
+            if (event.key === this._commKeyName) {
                 this._updateCredentials();
             }
         });
@@ -321,7 +321,7 @@ export class AuthService {
      * the SSO URL, otherwise it's iffy and shouldn't trust it.
      */
     private messageIsAcceptable(event: MessageEvent): boolean {
-        return event.origin === this.aapURL;
+        return event.origin === this._appURL;
     }
 
     private _updateCredentials() {
@@ -346,7 +346,7 @@ export class AuthService {
             const delay = +expireDate - +new Date();
             this._timeoutID = window.setTimeout(() => this.logOut(), delay);
         } else {
-            this.storageRemover(); // Cleanup possible left behind token
+            this._storageRemover(); // Cleanup possible left behind token
             this._credentials.next(null);
             this._logoutCallbacks.map(callback => callback && callback());
         }

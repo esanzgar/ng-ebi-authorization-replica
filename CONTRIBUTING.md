@@ -23,6 +23,13 @@ you set a `pre-commit` git hook in this way:
 ln -s ../../githooks/pre-commit  .git/hooks/pre-commit
 ```
 
+Optionally, to help you to adhere to the standard commit messages in the repo
+we recommend the use of the following `prepare-commit-msg` git hook:
+
+```
+ln -s ../../githooks/prepare-commit-msg  .git/hooks/prepare-commit-msg
+```
+
 Then download the dependencies.
 
 ```
