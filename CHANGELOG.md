@@ -1,4 +1,12 @@
+<a name="1.0.0-alpha.7"></a>
+# [1.0.0-alpha.7](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.5...1.0.0-alpha.7) (2018-02-16)
+
+### Features
+* **token:** getClaim function in some instances didn't return the default value
+    when no value for the claim was found. Fixed.
+
 <a name="1.0.0-alpha.6"></a>
+
 # [1.0.0-alpha.6](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.5...1.0.0-alpha.6) (2018-02-16)
 
 ### Features
