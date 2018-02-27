@@ -49,7 +49,11 @@ export class TokenService {
      */
     public getClaim < T, C > (claim: string, defaultValue: C): T | C {
         try {
-            return < T > this._jwt.decodeToken()[claim];
+            const value = < T > this._jwt.decodeToken()[claim];
+            if (value === undefined) {
+                return defaultValue;
+            }
+            return value;
         } catch (e) {
             return defaultValue;
         }
