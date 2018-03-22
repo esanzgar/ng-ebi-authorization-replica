@@ -15,7 +15,7 @@ session storage).
 To install this library, run:
 
 ```
-npm install angular-aap-auth --save
+npm install --save angular-aap-auth
 
 or
 
@@ -78,8 +78,8 @@ import {
     selector: 'app-root',
     template: `
     <button (click)="auth.windowOpen()">Login small window</button>
-    <button (click)="auth.tabOpen()" target="_blank">Login new tab</button>
-    <button (click)="auth.logOut()" target="_blank">Logout</button>
+    <button (click)="auth.tabOpen()">Login new tab</button>
+    <button (click)="auth.logOut()">Logout</button>
 
     <div *ngIf="(credentials | async) as user; else loggedOut">
         <p>Real name: {{ user.realname }}</p>
@@ -130,8 +130,8 @@ import {
     selector: 'app-root',
     template: `
     <button (click)="auth.windowOpen()">Login small window</button>
-    <button (click)="auth.tabOpen()" target="_blank">Login new tab</button>
-    <button (click)="auth.logOut()" target="_blank">Logout</button>
+    <button (click)="auth.tabOpen()">Login new tab</button>
+    <button (click)="auth.logOut()">Logout</button>
 
     <p>Authenticated: {{ isAuthenticated|async }}</p>
     <p>Real name: {{ realname|async }}</p>
@@ -237,7 +237,7 @@ import {
     selector: 'app-root',
     template: `
     <button (click)="openLoginWindow()">Login small window</button>
-    <button (click)="logOut()" target="_blank">Logout</button>
+    <button (click)="logOut()">Logout</button>
 
     <p>Real name: {{ realname|async }}</p>
     <p>Username: {{ username|async }}</p>

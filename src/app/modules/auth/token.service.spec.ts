@@ -58,8 +58,8 @@ describe('TokenService (valid token)', () => {
         expect(service.getClaim('issr', null)).toEqual(null);
     }));
 
-    it('getClaim should with non-existing claim should return default value undefined', inject([TokenService], (service: TokenService) => {
-        expect(service.getClaim('issr', undefined)).toEqual(undefined);
+    it('getClaim should with non-existing claim should return default value null', inject([TokenService], (service: TokenService) => {
+        expect(service.getClaim('issr', null)).toEqual(null);
     }));
 });
 
@@ -106,7 +106,7 @@ describe('TokenService (expired token)', () => {
         expect(service.getClaim('issr', null)).toEqual(null);
     }));
 
-    it('getClaim should with non-existing claim should return default value undefined', inject([TokenService], (service: TokenService) => {
-        expect(service.getClaim('issr', undefined)).toEqual(undefined);
+    it('getClaim should with non-existing claim should return default value null', inject([TokenService], (service: TokenService) => {
+        expect(service.getClaim('issr', null)).toEqual(null);
     }));
 });

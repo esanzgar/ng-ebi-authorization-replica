@@ -40,7 +40,7 @@ export class AuthService {
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
 
-    private _timeoutID: number | undefined = undefined;
+    private _timeoutID: number | null = null;
 
     // Configuration
     private readonly _domain: string;

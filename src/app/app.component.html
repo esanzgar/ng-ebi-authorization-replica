@@ -6,8 +6,8 @@
 </div>
 <div class="spread">
     <button (click)="auth.windowOpen({ttl: '1'})">Login small window</button>
-    <button (click)="auth.tabOpen({ttl: '1'})" target="_blank">Login new tab</button>
-    <button (click)="auth.logOut()" target="_blank">Logout</button>
+    <button (click)="auth.tabOpen({ttl: '1'})">Login new tab</button>
+    <button (click)="auth.logOut()">Logout</button>
 </div>
 <div *ngIf="(credentials | async) as user; else loggedOut">
     <p>Real name: {{ user.realname }}</p>
