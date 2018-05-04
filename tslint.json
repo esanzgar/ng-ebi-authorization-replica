@@ -1,9 +1,7 @@
 {
-  "rulesDirectory": [
-    "node_modules/codelyzer"
-  ],
   "extends": [
-    "rxjs-tslint-rules"
+    "rxjs-tslint-rules",
+    "codelyzer"
   ],
   "rules": {
     "arrow-return-shorthand": true,
@@ -144,6 +142,6 @@
     "rxjs-no-add": { "severity": "error" },
     "rxjs-no-operator": { "severity": "error" },
     "rxjs-no-patched": { "severity": "error" },
-    "rxjs-no-wholesale": { "severity": "error" }
+    "rxjs-no-wholesale": { "severity": "warning" }
   }
 }
