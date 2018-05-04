@@ -6,10 +6,10 @@ import {
 } from '@angular/core';
 import {
     Observable
-} from 'rxjs/Observable';
+} from 'rxjs';
 import {
     BehaviorSubject,
-} from 'rxjs/BehaviorSubject';
+} from 'rxjs';
 import {
     map
 } from 'rxjs/operators';
