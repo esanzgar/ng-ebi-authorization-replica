@@ -22,6 +22,13 @@ or
 yarn add angular-aap-auth
 ```
 
+Compatibility table
+
+Angular version | angular-aap-auth version
+--- | ---
+>=5 <6 | 1.0.0-alpha.7
+>=6 <7 | 1.0.0-alpha.8
+
 ## Consuming the library
 
 In your Angular `AppModule` (app.module.ts):
