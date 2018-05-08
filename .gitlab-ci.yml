@@ -11,6 +11,7 @@ variables:
 prepare:
   stage: prepare
   image: node:alpine
+  tags: [docker]
   script:
     - yarn
     - yarn ng --version # Display version information
@@ -21,7 +22,8 @@ prepare:
 
 test:
   stage: test
-  image: psafont/angular-cli_build
+  image: esanzgar/angular-cli_build
+  tags: [docker]
   script:
     - yarn test:sr:chromium
   artifacts:
@@ -31,6 +33,7 @@ test:
 lint:
   stage: test
   image: node:alpine
+  tags: [docker]
   script:
     - yarn lint
   allow_failure: true
@@ -38,6 +41,7 @@ lint:
 docs:
   stage: test
   image: node:alpine
+  tags: [docker]
   script:
     - yarn docs
   artifacts:
@@ -47,6 +51,7 @@ docs:
 build:
   stage: build
   image: node:alpine
+  tags: [docker]
   script:
     - yarn build
   artifacts:
