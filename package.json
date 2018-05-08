@@ -6,7 +6,7 @@
         "ng": "ng",
         "start": "ng serve --aot",
         "build": "ng build --prod --aot",
-        "test": "ng test --karma-config=karma_chrome.conf.js",
+        "test": "ng test --karma-config=karma_chrome.conf.js --watch",
         "test:sr": "ng test --code-coverage=true --progress=false",
         "test:sr:chromium": "ng test --code-coverage=true --progress=false --karma-config=karma_chromium.conf.js",
         "lint": "ng lint",
@@ -31,11 +31,10 @@
     "bugs": {
         "url": "https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/issues"
     },
-    "dependencies": {
-        "@auth0/angular-jwt": "^1.1.0"
-    },
+    "dependencies": {},
     "peerDependencies": {
         "@angular/core": ">=6 <7",
+        "@auth0/angular-jwt": "^1.1.0",
         "rxjs": ">=6",
         "rxjs-compat": ">=6"
     },
@@ -49,11 +48,12 @@
         "@angular/language-service": "6.0.0",
         "@angular/platform-browser": "6.0.0",
         "@angular/platform-browser-dynamic": "6.0.0",
+        "@auth0/angular-jwt": "^1.1.0",
         "@types/jasmine": "~2.8.7",
         "@types/jasminewd2": "~2.0.3",
-        "@types/node": "~10.0.3",
+        "@types/node": "~10.0.4",
         "codelyzer": "^4.3.0",
-        "core-js": "^2.5.5",
+        "core-js": "^2.5.6",
         "jasmine-core": "^3.1.0",
         "jasmine-spec-reporter": "~4.2.1",
         "karma": "~2.0.2",
@@ -67,10 +67,10 @@
         "rxjs": "^6.1.0",
         "rxjs-compat": "^6.1.0",
         "rxjs-tslint-rules": "^4.1.1",
-        "ts-node": "~6.0.2",
+        "ts-node": "~6.0.3",
         "tslint": "~5.10.0",
         "typedoc": "^0.11.1",
-        "typescript": "2.7.2",
+        "typescript": ">=2.7.2 <2.8",
         "zone.js": "^0.8.26"
     }
 }

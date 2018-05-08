@@ -3,10 +3,12 @@
   "lib": {
     "entryFile": "src/public_api.ts",
     "externals" :{
-        "@auth0/angular-jwt": "angularJwt"
+      "@auth0/angular-jwt": "angularJwt",
+      "rxjs": "rxjs"
     },
     "umdModuleIds": {
-      "@auth0/angular-jwt" : "angularJwt"
+      "@auth0/angular-jwt" : "angularJwt",
+      "rxjs": "rxjs"
     },
     "licensePath": "LICENSE"
   },
