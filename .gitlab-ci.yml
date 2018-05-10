@@ -22,7 +22,7 @@ prepare:
 
 test:
   stage: test
-  image: esanzgar/angular-cli_build
+  image: esanzgar/node-chromium
   tags: [docker]
   script:
     - yarn test:sr:chromium
