@@ -80,7 +80,7 @@ describe('AuthService (valid token)', () => {
         isAuthenticated.subscribe(result => expect(result).toBeFalsy());
     }));
 
-    it('should be correct single sing on URL', inject([AuthService], (service: AuthService) => {
+    it('should be correct single sign on URL', inject([AuthService], (service: AuthService) => {
         expect(service.getSSOURL({
                 'ttl': '30',
                 'o': '3'
@@ -88,7 +88,7 @@ describe('AuthService (valid token)', () => {
             .toEqual('https://api.aai.ebi.ac.uk/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=30&o=3');
     }));
 
-    it('should be correct single sing on URL', inject([AuthService], (service: AuthService) => {
+    it('should be correct single sign on URL', inject([AuthService], (service: AuthService) => {
         expect(service.getSSOURL({
                 'ttl': '1441',
                 'o': '3'

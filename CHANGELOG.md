@@ -1,3 +1,10 @@
+<a name="1.0.0-alpha.9"></a>
+# [1.0.0-alpha.9](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.8...1.0.0-alpha.9) (2018-05-16)
+
+### Features
+* upgrade to @auth0/angular-jwt version 2 and drop dependency of rxjs-compat
+
+<a name="1.0.0-alpha.7"></a>
 <a name="1.0.0-alpha.8"></a>
 # [1.0.0-alpha.8](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.7...1.0.0-alpha.8) (2018-05-08)
 
