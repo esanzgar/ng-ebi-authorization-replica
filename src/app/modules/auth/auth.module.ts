@@ -33,15 +33,7 @@ export class AuthModule {
     static forRoot(options?: AuthConfig): ModuleWithProviders {
         return {
             ngModule: AuthModule,
-            providers: [{
-                    provide: JWT_OPTIONS,
-                    useValue: options ? {
-                        tokenGetter: options.tokenGetter
-                    } : {
-                        tokenGetter: DEFAULT_CONF.tokenGetter
-                    }
-                },
-                JwtHelperService,
+            providers: [
                 TokenService,
                 {
                     provide: AAP_CONFIG,

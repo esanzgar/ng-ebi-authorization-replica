@@ -15,11 +15,11 @@ session storage).
 To install this library, run:
 
 ```
-npm install --save angular-aap-auth
+npm install --save angular-aap-auth @auth0/angular-jwt
 
 or
 
-yarn add angular-aap-auth
+yarn add angular-aap-auth @auth0/angular-jwt
 ```
 
 Compatibility table
@@ -55,6 +55,11 @@ import {
     imports: [
         BrowserModule,
         AuthModule.forRoot(),
+        JwtModuld.forRoot({
+            config: {
+                tokenGetter: () => localStorage.getItem( 'id_token')
+            }
+        })
     ],
     providers: [],
     bootstrap: [AppComponent]
@@ -214,6 +219,11 @@ export function removeToken(): void {
             tokenUpdater: updateToken,
             tokenRemover: removeToken // Optional
         }),
+        JwtModuld.forRoot({
+            config: {
+                tokenGetter: getToken,
+            }
+        })
     ],
     providers: [],
     bootstrap: [AppComponent]

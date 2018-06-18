@@ -1,10 +1,16 @@
+<a name="1.0.0-alpha.10"></a>
+# [1.0.0-alpha.10](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.9...1.0.0-alpha.10) (2018-06-18)
+
+### Features
+* JwtModule must be set up independently of the AuthModule. Both must have the
+  same tokenGetter function in order to work properly.
+
 <a name="1.0.0-alpha.9"></a>
 # [1.0.0-alpha.9](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.8...1.0.0-alpha.9) (2018-05-16)
 
 ### Features
 * upgrade to @auth0/angular-jwt version 2 and drop dependency of rxjs-compat
 
-<a name="1.0.0-alpha.7"></a>
 <a name="1.0.0-alpha.8"></a>
 # [1.0.0-alpha.8](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.7...1.0.0-alpha.8) (2018-05-08)
 
@@ -19,7 +25,6 @@
     when no value for the claim was found. Fixed.
 
 <a name="1.0.0-alpha.6"></a>
-
 # [1.0.0-alpha.6](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.5...1.0.0-alpha.6) (2018-02-16)
 
 ### Features

@@ -11,14 +11,14 @@ import {
     AppComponent
 } from './app.component';
 import {
-    AuthModule
-} from './modules/auth/auth.module';
+    CommonStub
+} from 'app/../../testing/common';
 
 describe('AppComponent', () => {
     beforeEach(async (() => {
         TestBed.configureTestingModule({
             imports: [
-                AuthModule.forRoot()
+                CommonStub
             ],
             declarations: [
                 AppComponent

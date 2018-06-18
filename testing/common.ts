@@ -1,20 +1,15 @@
 import {
-    BrowserModule
-} from '@angular/platform-browser';
-import {
     NgModule
 } from '@angular/core';
 
 import {
-    AppComponent
-} from './app.component';
-import {
-    AuthModule
-} from './modules/auth/auth.module';
-import {
     JwtModule
 } from '@auth0/angular-jwt';
+import {
+    AuthModule
+} from '../src/app/modules/auth/auth.module';
 
+export const jwt_token = 'test';
 export function getToken(): string {
     return localStorage.getItem('jwt_token') || '';
 }
@@ -25,29 +20,24 @@ export function updateToken(newToken: string): void {
 export function removeToken(): void {
     return localStorage.removeItem('jwt_token');
 }
-
 @NgModule({
-    declarations: [
-        AppComponent
-    ],
     imports: [
-        BrowserModule,
-        // AuthModule.forRoot(),
         AuthModule.forRoot({
-            aapURL: 'https://api.aai.ebi.ac.uk',
+            aapURL: 'https://blah.com',
             tokenGetter: getToken,
             tokenUpdater: updateToken,
-        //     tokenRemover: removeToken  // Optional
+            tokenRemover: removeToken // Optional
         }),
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
                 whitelistedDomains: []
             }
-        })
+        }),
     ],
-    providers: [
+    exports: [
+        JwtModule,
+        AuthModule,
     ],
-    bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class CommonStub {}
