@@ -47,6 +47,9 @@ import {
 import {
     AuthModule
 } from 'angular-aap-auth';
+import {
+    JwtModule
+} from '@auth0/angular-jwt';
 
 @NgModule({
     declarations: [
@@ -55,9 +58,9 @@ import {
     imports: [
         BrowserModule,
         AuthModule.forRoot(),
-        JwtModuld.forRoot({
+        JwtModule.forRoot({
             config: {
-                tokenGetter: () => localStorage.getItem( 'id_token')
+                tokenGetter: () => localStorage.getItem('id_token')
             }
         })
     ],
@@ -195,6 +198,9 @@ import {
 import {
     AuthModule
 } from 'angular-aap-auth';
+import {
+    JwtModule
+} from '@auth0/angular-jwt';
 
 export function getToken(): string {
     return localStorage.getItem('jwt_token') || '';
@@ -219,7 +225,7 @@ export function removeToken(): void {
             tokenUpdater: updateToken,
             tokenRemover: removeToken // Optional
         }),
-        JwtModuld.forRoot({
+        JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
             }
