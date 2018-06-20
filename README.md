@@ -42,14 +42,15 @@ import {
 } from '@angular/core';
 
 import {
-    AppComponent
-} from './app.component';
-import {
     AuthModule
 } from 'angular-aap-auth';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
+
+import {
+    AppComponent
+} from './app.component';
 
 @NgModule({
     declarations: [
@@ -57,7 +58,7 @@ import {
     ],
     imports: [
         BrowserModule,
-        AuthModule.forRoot(),
+        AuthModule.forRoot(), // Defaults to localStorage `id_token` key.
         JwtModule.forRoot({
             config: {
                 tokenGetter: () => localStorage.getItem('id_token')
@@ -82,7 +83,7 @@ import {
 } from '@angular/core';
 import {
     Observable,
-} from 'rxjs/Observable';
+} from 'rxjs';
 
 import {
     AuthService,
@@ -132,7 +133,7 @@ import {
 } from '@angular/core';
 import {
     Observable,
-} from 'rxjs/Observable';
+} from 'rxjs';
 import {
     map
 } from 'rxjs/operators';
@@ -246,7 +247,7 @@ import {
 } from '@angular/core';
 import {
     Observable,
-} from 'rxjs/Observable';
+} from 'Observable';
 import {
     map
 } from 'rxjs/operators';
