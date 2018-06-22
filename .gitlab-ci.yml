@@ -1,24 +1,30 @@
-stages:
-  - prepare
-  - test
-  - build
-
 # Needed to launch the image
 variables:
   USER_ID: "$(id -u)"
   GROUP_ID: "$(id -g)"
 
-prepare:
-  stage: prepare
+stages:
+  - test
+  - build
+
+before_script:
+#  - yarn install --frozen-lockfile --cache-folder .yarn
+  - yarn install --frozen-lockfile
+  - yarn ng --version
+
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - node_modules/
+#    - .yarn
+
+lint:
+  stage: test
   image: node:alpine
   tags: [docker]
   script:
-    - yarn
-    - yarn ng --version # Display version information
-  artifacts:
-    paths:
-      - node_modules/
-    expire_in: 1 hour
+    - yarn lint
+  allow_failure: true
 
 test:
   stage: test
@@ -29,14 +35,6 @@ test:
   artifacts:
     paths:
       - coverage/
-
-lint:
-  stage: test
-  image: node:alpine
-  tags: [docker]
-  script:
-    - yarn lint
-  allow_failure: true
 
 docs:
   stage: test
@@ -53,7 +51,7 @@ build:
   image: node:alpine
   tags: [docker]
   script:
-    - yarn build
+    - yarn packagr
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     paths:
