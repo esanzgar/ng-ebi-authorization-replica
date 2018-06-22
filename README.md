@@ -1,10 +1,5 @@
 # angular-aap-auth
 
-[![npm version](https://badge.fury.io/js/angular-aap-auth.svg)](https://www.npmjs.com/package/angular-aap-auth)
-[![npm downloads](https://img.shields.io/npm/dm/angular-aap-auth.svg)](https://www.npmjs.com/package/angular-aap-auth)
-[![test and build status](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/build.svg)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master 'test and build status')
-[![coverage report](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/badges/master/coverage.svg?job=test)](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commits/master)
-
 The angular-aap-auth is a simple authentication Angular library that relies on
 EBI's Authentication and Authorization Profile (AAP) infrastructure. After
 successful login, a JWT token is stored on the browser (via cookie, local or

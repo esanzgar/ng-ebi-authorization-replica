@@ -1,3 +1,9 @@
+<a name="1.0.0-alpha.11"></a>
+# [1.0.0-alpha.11](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.10...1.0.0-alpha.11) (2018-06-20)
+
+### Features
+* improved documentation
+
 <a name="1.0.0-alpha.10"></a>
 # [1.0.0-alpha.10](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.9...1.0.0-alpha.10) (2018-06-18)
 
