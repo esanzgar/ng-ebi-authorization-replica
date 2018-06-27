@@ -8,15 +8,13 @@ stages:
   - build
 
 before_script:
-#  - yarn install --frozen-lockfile --cache-folder .yarn
-  - yarn install --frozen-lockfile
+  - yarn install --frozen-lockfile --cache-folder .yarn
   - yarn ng --version
 
 cache:
   key: "${CI_COMMIT_REF_SLUG}"
   paths:
-    - node_modules/
-#    - .yarn
+    - .yarn
 
 lint:
   stage: test
