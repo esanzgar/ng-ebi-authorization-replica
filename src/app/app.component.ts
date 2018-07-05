@@ -28,6 +28,7 @@ export class AppComponent implements OnInit {
     // More specific
     username: Observable < string | null > ;
     realname: Observable < string | null > ;
+    email: Observable < string | null > ;
     token: Observable < string | null > ;
     isAuthenticated: Observable < string > ;
 
@@ -43,6 +44,7 @@ export class AppComponent implements OnInit {
 
         this.username = auth.username();
         this.realname = auth.realname();
+        this.email = auth.email();
         this.token = auth.token();
 
         this.isAuthenticated = (auth.isAuthenticated()).pipe(

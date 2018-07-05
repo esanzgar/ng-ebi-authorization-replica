@@ -65,12 +65,17 @@ describe('AuthService (valid token)', () => {
 
     it('should have username', () => {
         const username = service.username();
-        username.subscribe(result => expect(result).toEqual('test@ebi.ac.uk'));
+        username.subscribe(result => expect(result).toEqual('usr-75f4b000'));
     });
 
     it('should have realname', () => {
         const realname = service.realname();
         realname.subscribe(result => expect(result).toEqual('Ed Munden Gras'));
+    });
+
+    it('should have email', () => {
+        const email = service.email();
+        email.subscribe(result => expect(result).toEqual('test@ebi.ac.uk'));
     });
 
     it('should have token', () => {
@@ -147,12 +152,17 @@ describe('AuthService (expired token)', () => {
         username.subscribe(result => expect(result).toBeNull());
     }));
 
-    it('should have realname', inject([AuthService], (service: AuthService) => {
+    it('should not have realname', inject([AuthService], (service: AuthService) => {
         const realname = service.realname();
         realname.subscribe(result => expect(result).toBeNull());
     }));
 
-    it('should have token', inject([AuthService], (service: AuthService) => {
+    it('should not have email', inject([AuthService], (service: AuthService) => {
+        const email = service.email();
+        email.subscribe(result => expect(result).toBeNull());
+    }));
+
+    it('should not have token', inject([AuthService], (service: AuthService) => {
         const token = service.token();
         token.subscribe(result => expect(result).toBeNull());
     }));

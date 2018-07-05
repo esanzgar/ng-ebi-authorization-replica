@@ -95,6 +95,7 @@ import {
     <div *ngIf="(credentials | async) as user; else loggedOut">
         <p>Real name: {{ user.realname }}</p>
         <p>Username: {{ user.username }}</p>
+        <p>Email: {{ user.email }}</p>
         <p>Token: {{ user.token }}</p>
     </div>
     <ng-template #loggedOut>
@@ -153,6 +154,7 @@ import {
 export class AppComponent implements OnInit {
     username: Observable < string | null > ;
     realname: Observable < string | null > ;
+    email: Observable < string | null > ;
     token: Observable < string | null > ;
     isAuthenticated: Observable < string > ;
 
@@ -162,6 +164,7 @@ export class AppComponent implements OnInit {
     ) {
         this.username = auth.username();
         this.realname = auth.realname();
+        this.email= auth.email();
         this.token = auth.token();
 
         this.isAuthenticated = auth.isAuthenticated().pipe(
@@ -260,6 +263,7 @@ import {
 
     <p>Real name: {{ realname|async }}</p>
     <p>Username: {{ username|async }}</p>
+    <p>Email: {{ email|async }}</p>
     <p>Expiration: {{ expiration|async }}</p>
     <p>ISS: {{ iss|async }}</p>
     <p>Token: {{ token|async }}</p>
@@ -268,6 +272,7 @@ import {
 export class AppComponent implements OnInit {
     username: Observable < string | null > ;
     realname: Observable < string | null > ;
+    email: Observable < string | null > ;
     token: Observable < string | null > ;
 
     // How to obtain other claims
@@ -281,6 +286,7 @@ export class AppComponent implements OnInit {
     ) {
         this.username = auth.username();
         this.realname = auth.realname();
+        this.email = auth.email();
         this.token = auth.token();
 
         this.expiration = this.token.pipe(

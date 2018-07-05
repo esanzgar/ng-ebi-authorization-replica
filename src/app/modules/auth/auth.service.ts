@@ -29,6 +29,7 @@ export interface LoginOptions {
 export interface Credentials {
     realname: string;
     username: string;
+    email: string;
     token: string;
 }
 
@@ -75,31 +76,41 @@ export class AuthService {
     }
 
     public isAuthenticated(): Observable < boolean > {
-        return this._credentials.asObservable().pipe(
-            map(credentials => credentials ? true : false)
+        return this.fromCredentials(
+            credentials => credentials ? true : false
         );
     }
 
     public credentials(): Observable < Credentials | null > {
-        return this._credentials.asObservable();
+        return this.fromCredentials(credentials => credentials);
     }
 
     public realname(): Observable < string | null > {
-        return this._credentials.asObservable().pipe(
-            map(credentials => credentials ?  credentials.realname : null)
+        return this.fromCredentials(
+            credentials => credentials ? credentials.realname : null
         );
     }
 
     public username(): Observable < string | null > {
-        return this._credentials.asObservable().pipe(
-            map(credentials => credentials ?  credentials.username : null)
+        return this.fromCredentials(
+            credentials => credentials ? credentials.username : null
+        );
+    }
+
+    public email(): Observable < string | null > {
+        return this.fromCredentials(
+            credentials => credentials ? credentials.email : null
         );
     }
 
     public token(): Observable < string | null > {
-        return this._credentials.asObservable().pipe(
-            map(credentials => credentials ?  credentials.token : null)
+        return this.fromCredentials(
+            credentials => credentials ? credentials.token : null
         );
+    }
+
+    private fromCredentials < T > (extractor: (_: Credentials) => T ): Observable < T > {
+        return this._credentials.asObservable().pipe(map(extractor));
     }
 
     /**
@@ -335,6 +346,7 @@ export class AuthService {
             this._credentials.next({
                 realname: < string > this._getRealName(),
                 username: < string > this._getUserName(),
+                email: < string > this._getEmail(),
                 token: < string > this._getToken()
             });
 
@@ -365,12 +377,16 @@ export class AuthService {
         return this._tokenService.getToken();
     }
 
-    private _getUserName(): string | null {
-        return this._tokenService.getClaim < string, null > ('email', null);
-    }
-
     private _getRealName(): string | null {
         return this._tokenService.getClaim < string, null > ('name', null);
+    }
+
+    private _getUserName(): string | null {
+        return this._tokenService.getClaim < string, null > ('sub', null);
+    }
+
+    private _getEmail(): string | null {
+        return this._tokenService.getClaim < string, null > ('email', null);
     }
 
 }

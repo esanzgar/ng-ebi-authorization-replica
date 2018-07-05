@@ -12,6 +12,7 @@
 <div *ngIf="(credentials | async) as user; else loggedOut">
     <p>Real name: {{ user.realname }}</p>
     <p>Username: {{ user.username }}</p>
+    <p>Email: {{ user.email }}</p>
     <p>Token: {{ user.token }}</p>
 </div>
 <ng-template #loggedOut>
@@ -23,6 +24,7 @@
     <p>Authenticated: {{ isAuthenticated|async }}</p>
     <p>Real name: {{ realname|async }}</p>
     <p>Username: {{ username|async }}</p>
+    <p>Email: {{ email|async }}</p>
     <p>Expiration: {{ expiration|async }}</p>
     <p>Token: {{ token|async }}</p>
 </div>
