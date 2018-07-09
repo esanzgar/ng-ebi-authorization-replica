@@ -26,6 +26,15 @@ Angular version | angular-aap-auth version
 
 ## Consuming the library
 
+The library exposes user information through `User` objects, which have information that's usually required for web application to work:
+
+- The unique identifier (`uid`): if a unique identifier has to be used, use this field.
+- Name (`name`): the full name of the user, for display purposes
+- Nickname (`nickname`): if the user is an local aap account, it will contain the username, otherwise will have a weird string.
+- Email (`email`): the account's email, this is for information only and several accounts may have the same username.
+- Domains (`domains`): not directly provided. They may be misused into dong checking if the user has authorization to do some actions.
+  This should be done always server-side, if the domains information wants to be shown to the user as information it can still be done,
+  check the [Advanced usage](#advanced-usage) to see how to expose arbitrary token claims, or the embedded app.
 In your Angular `AppModule` (app.module.ts):
 
 ```typescript
@@ -67,7 +76,7 @@ export class AppModule {}
 ```
 
 The default configuration uses localStorage to save the JWT token under the key
-'id_token'. See [Advance usage](#advance-usage) for a more fine grained configuration.
+'id_token'. See [Advanced usage](#advanced-usage) for a more fine grained configuration.
 
 Example use on a component:
 
@@ -82,7 +91,7 @@ import {
 
 import {
     AuthService,
-    Credentials
+    User
 } from 'angular-aap-auth';
 
 @Component({
@@ -92,9 +101,9 @@ import {
     <button (click)="auth.tabOpen()">Login new tab</button>
     <button (click)="auth.logOut()">Logout</button>
 
-    <div *ngIf="(credentials | async) as user; else loggedOut">
-        <p>Real name: {{ user.realname }}</p>
-        <p>Username: {{ user.username }}</p>
+    <div *ngIf="(user | async) as user; else loggedOut">
+        <p>Name: {{ user.name }}</p>
+        <p>Unique Identifier: {{ user.uid }}</p>
         <p>Email: {{ user.email }}</p>
         <p>Token: {{ user.token }}</p>
     </div>
@@ -104,13 +113,13 @@ import {
     `
 })
 export class AppComponent implements OnInit {
-    credentials: Observable < Credentials | null > ;
+    user: Observable < User | null > ;
 
     constructor(
         // Public for demonstration purposes
         public auth: AuthService,
     ) {
-        this.credentials = auth.credentials();
+        this.user = auth.user();
     }
 
     ngOnInit() {
@@ -120,68 +129,9 @@ export class AppComponent implements OnInit {
 }
 ```
 
-Alternative approach:
+## Advanced usage
 
-```typescript
-import {
-    Component,
-    OnInit
-} from '@angular/core';
-import {
-    Observable,
-} from 'rxjs';
-import {
-    map
-} from 'rxjs/operators';
-
-import {
-    AuthService
-} from 'angular-aap-auth';
-
-@Component({
-    selector: 'app-root',
-    template: `
-    <button (click)="auth.windowOpen()">Login small window</button>
-    <button (click)="auth.tabOpen()">Login new tab</button>
-    <button (click)="auth.logOut()">Logout</button>
-
-    <p>Authenticated: {{ isAuthenticated|async }}</p>
-    <p>Real name: {{ realname|async }}</p>
-    <p>Username: {{ username|async }}</p>
-    <p>Token: {{ token|async }}</p>
-    `
-})
-export class AppComponent implements OnInit {
-    username: Observable < string | null > ;
-    realname: Observable < string | null > ;
-    email: Observable < string | null > ;
-    token: Observable < string | null > ;
-    isAuthenticated: Observable < string > ;
-
-    constructor(
-        // Public for demonstration purposes
-        public auth: AuthService,
-    ) {
-        this.username = auth.username();
-        this.realname = auth.realname();
-        this.email= auth.email();
-        this.token = auth.token();
-
-        this.isAuthenticated = auth.isAuthenticated().pipe(
-            map(value => value && 'true' || 'false')
-        );
-    }
-
-    ngOnInit() {
-        this.auth.addLogInEventListener(() => console.log('Welcome'));
-        this.auth.addLogOutEventListener(() => console.log('Bye'));
-    }
-}
-```
-
-## Advance usage
-
-Advance module configuration:
+Advanced module configuration:
 
 ```typescript
 import {
@@ -244,7 +194,7 @@ import {
     OnInit
 } from '@angular/core';
 import {
-    Observable,
+    Observable
 } from 'Observable';
 import {
     map
@@ -252,8 +202,12 @@ import {
 
 import {
     AuthService,
-    TokenService // Only needed to inspect other claims in the JWT token
+    TokenService // Needed for JWT claim introspection
 } from 'angular-aap-auth';
+
+import {
+    JwtHelperService,
+} from '@auth0/angular-jwt';
 
 @Component({
     selector: 'app-root',
@@ -261,19 +215,18 @@ import {
     <button (click)="openLoginWindow()">Login small window</button>
     <button (click)="logOut()">Logout</button>
 
-    <p>Real name: {{ realname|async }}</p>
-    <p>Username: {{ username|async }}</p>
-    <p>Email: {{ email|async }}</p>
-    <p>Expiration: {{ expiration|async }}</p>
-    <p>ISS: {{ iss|async }}</p>
-    <p>Token: {{ token|async }}</p>
+    <div *ngIf="(user | async) as user; else loggedOut">
+        <p>Expiration Date: {{ expiration | async }}</p>
+        <p>Issuer: {{ iss | async }}</p>
+
+    </div>
+    <ng-template #loggedOut>
+        <p>Please, log in.</p>
+    </ng-template>
     `
 })
 export class AppComponent implements OnInit {
-    username: Observable < string | null > ;
-    realname: Observable < string | null > ;
-    email: Observable < string | null > ;
-    token: Observable < string | null > ;
+    user: Observable < User | null > ;
 
     // How to obtain other claims
     expiration: Observable < Date | null > ;
@@ -282,19 +235,24 @@ export class AppComponent implements OnInit {
     constructor(
         // Public for demonstration purposes
         private auth: AuthService,
-        private jwt: TokenService
+        private tokens: TokenService,
+        private jwt: JwtHelperService
     ) {
-        this.username = auth.username();
-        this.realname = auth.realname();
-        this.email = auth.email();
-        this.token = auth.token();
+        this.user = auth.user();
 
-        this.expiration = this.token.pipe(
-            map(token => jwt.getTokenExpirationDate())
+        this.expiration = this.user.pipe(
+            map(_ => {
+                let token = this.tokens.getToken();
+                try {
+                    return jwt.getTokenExpirationDate(<string>token);
+                } catch (e) {
+                    return null;
+                }
+            })
         );
 
-        this.iss = this.token.pipe(
-            map(token => jwt.getClaim < string, null > ('iss', null))
+        this.iss = this.user.pipe(
+            map(_ => jwt.getClaim < string, null > ('iss', null))
         );
     }
 

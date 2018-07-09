@@ -11,8 +11,11 @@ import {
 
 import {
     AuthService,
-    Credentials
+    User
 } from 'app/modules/auth/auth.service';
+import {
+    TokenService
+} from 'app/modules/auth/token.service';
 import {
     JwtHelperService,
 } from '@auth0/angular-jwt';
@@ -23,44 +26,34 @@ import {
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-    credentials: Observable< Credentials | null>;
+    user: Observable < User | null>;
 
-    // More specific
-    username: Observable < string | null > ;
-    realname: Observable < string | null > ;
-    email: Observable < string | null > ;
-    token: Observable < string | null > ;
     isAuthenticated: Observable < string > ;
-
-    // How to obtain other claims
     expiration: Observable < Date | null > ;
 
     constructor(
         // Public for demonstration purposes
         public auth: AuthService,
+        private tokens: TokenService,
         private jwt: JwtHelperService
     ) {
-        this.credentials = auth.credentials();
+        this.user = auth.user();
 
-        this.username = auth.username();
-        this.realname = auth.realname();
-        this.email = auth.email();
-        this.token = auth.token();
-
-        this.isAuthenticated = (auth.isAuthenticated()).pipe(
-            map(value => value && 'true' || 'false')
+        this.isAuthenticated = this.user.pipe(
+            map(value => value != null && 'Yes!' || 'Nope')
         );
 
-        this.expiration = this.token.pipe(
-            map(token => {
+        this.expiration = this.user.pipe(
+            map(_ => {
+                const token = this.tokens.getToken();
                 try {
                     return jwt.getTokenExpirationDate(<string>token);
                 } catch (e) {
                     return null;
                 }
-
             })
         );
+
     }
 
     ngOnInit() {
