@@ -9,22 +9,19 @@
     <button (click)="auth.tabOpen({ttl: '1'})">Login new tab</button>
     <button (click)="auth.logOut()">Logout</button>
 </div>
-<div *ngIf="(credentials | async) as user; else loggedOut">
-    <p>Real name: {{ user.realname }}</p>
-    <p>Username: {{ user.username }}</p>
+<div *ngIf="(user | async) as user; else loggedOut">
+    <p>Unique ID: {{ user.uid }}</p>
+    <p>Name: {{ user.name }}</p>
+    <p>Nickname: {{ user.nickname }}</p>
     <p>Email: {{ user.email }}</p>
-    <p>Token: {{ user.token }}</p>
+</div>
+<h3>Advanced handling of tokens:</h3>
+<div>
+    <p>Can we present the token to servers? {{ isAuthenticated | async }}</p>
+    <div *ngIf="(expiration | async) as expiration;">
+        <p>Expiration date of the token: {{ expiration }}</p>
+    </div>
 </div>
 <ng-template #loggedOut>
     <p>Please, log in.</p>
 </ng-template>
-
-<h3>Alternative approach</h3>
-<div>
-    <p>Authenticated: {{ isAuthenticated|async }}</p>
-    <p>Real name: {{ realname|async }}</p>
-    <p>Username: {{ username|async }}</p>
-    <p>Email: {{ email|async }}</p>
-    <p>Expiration: {{ expiration|async }}</p>
-    <p>Token: {{ token|async }}</p>
-</div>

@@ -34,7 +34,7 @@ describe('AppComponent', () => {
         const fixture = TestBed.createComponent(AppComponent);
         const app = fixture.debugElement.componentInstance;
         app.isAuthenticated.subscribe((result: any) => {
-            expect(result).toEqual('false');
+            expect(result).toEqual('Nope');
         });
     }));
     it('should render title in a h1 tag', async (() => {

@@ -24,7 +24,7 @@ import {
     DEFAULT_CONF
 } from './auth.config';
 
-describe('AuthService (valid token)', () => {
+describe('AuthService with a non-expired token', () => {
 
     let service: AuthService;
 
@@ -49,54 +49,37 @@ describe('AuthService (valid token)', () => {
 
     beforeEach(inject([AuthService], (serv: AuthService) => { service = serv; }));
 
-    it('should be created', () => {
+    it('must be created', () => {
         expect(service).toBeTruthy();
     });
 
-    it('should be authenticated', () => {
-        const isAuthenticated = service.isAuthenticated();
-        isAuthenticated.subscribe(result => expect(result).toBeTruthy());
-    });
-
-    it('should have credentials', () => {
-        const credentials = service.credentials();
-        credentials.subscribe(result => expect(result).toBeTruthy());
-    });
-
-    it('should have username', () => {
-        const username = service.username();
-        username.subscribe(result => expect(result).toEqual('usr-75f4b000'));
-    });
-
-    it('should have realname', () => {
-        const realname = service.realname();
-        realname.subscribe(result => expect(result).toEqual('Ed Munden Gras'));
-    });
-
-    it('should have email', () => {
-        const email = service.email();
-        email.subscribe(result => expect(result).toEqual('test@ebi.ac.uk'));
-    });
-
-    it('should have token', () => {
-        const token = service.token();
-        token.subscribe(result => expect(result).toEqual(VALID_TOKEN));
+    it('must provide a user with valid fields', () => {
+        const users = service.user();
+        users.subscribe(user => {
+            if (user != null) {
+                expect(user.uid).toEqual('usr-75f4b000');
+                expect(user.name).toEqual('Ed Munden Gras');
+                expect(user.nickname).toEqual('6f37a0beb7b16f37a0beb7b1b');
+                expect(user.email).toEqual('test@ebi.ac.uk');
+            }
+        });
     });
 
     // It doesn't work because async and timer issues
-    it('should have log out', fakeAsync(() => {
+    xit('must be able to log out', fakeAsync(() => {
             let isAuthenticated = false;
-            service.isAuthenticated().subscribe(result => isAuthenticated = result);
+            service.user().subscribe(user => isAuthenticated = user != null);
             flushMicrotasks();
-            expect(isAuthenticated).toEqual(true);
+            expect(isAuthenticated).toBe(true, 'user must be authenticated at this point');
+
             // This doesn't work because the token is not coming from local storage but is a constant value.
-            // service.logOut();
-            // window.dispatchEvent(new Event('storage'));
-            // flushMicrotasks();
-            // expect(isAuthenticated).toEqual(false);
+            service.logOut();
+            window.dispatchEvent(new Event('storage'));
+            flushMicrotasks();
+            expect(isAuthenticated).toBe(false, 'user must not be authenticated at this point');
         }));
 
-    it('should be correct single sign on URL', () => {
+    it('must create valid single-sign-on URL', () => {
         expect(service.getSSOURL({
                 'ttl': '30',
                 'o': '3'
@@ -104,7 +87,7 @@ describe('AuthService (valid token)', () => {
             .toEqual('https://api.aai.ebi.ac.uk/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=30&o=3');
     });
 
-    it('should be correct single sign on URL', () => {
+    it('must limit the single-sign-on time-to-live argument to 1440 seconds', () => {
         expect(service.getSSOURL({
                 'ttl': '1441',
                 'o': '3'
@@ -113,7 +96,7 @@ describe('AuthService (valid token)', () => {
     });
 });
 
-describe('AuthService (expired token)', () => {
+describe('AuthService with an expired token', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [{
@@ -133,39 +116,13 @@ describe('AuthService (expired token)', () => {
         });
     });
 
-    it('should be created', inject([AuthService], (service: AuthService) => {
+    it('must be created', inject([AuthService], (service: AuthService) => {
         expect(service).toBeTruthy();
     }));
 
-    it('should not be authenticated', inject([AuthService], (service: AuthService) => {
-        const isAuthenticated = service.isAuthenticated();
-        isAuthenticated.subscribe(result => expect(result).toBeFalsy());
+    it('must provide null instead of a user', inject([AuthService], (service: AuthService) => {
+        const users = service.user();
+        users.subscribe(user => expect(user).toBeNull());
     }));
-
-    it('should not have credentials', inject([AuthService], (service: AuthService) => {
-        const credentials = service.credentials();
-        credentials.subscribe(result => expect(result).toBeNull());
-    }));
-
-    it('should not have username', inject([AuthService], (service: AuthService) => {
-        const username = service.username();
-        username.subscribe(result => expect(result).toBeNull());
-    }));
-
-    it('should not have realname', inject([AuthService], (service: AuthService) => {
-        const realname = service.realname();
-        realname.subscribe(result => expect(result).toBeNull());
-    }));
-
-    it('should not have email', inject([AuthService], (service: AuthService) => {
-        const email = service.email();
-        email.subscribe(result => expect(result).toBeNull());
-    }));
-
-    it('should not have token', inject([AuthService], (service: AuthService) => {
-        const token = service.token();
-        token.subscribe(result => expect(result).toBeNull());
-    }));
-
 
 });

@@ -26,17 +26,17 @@ export interface LoginOptions {
     [key: string]: string;
 }
 
-export interface Credentials {
-    realname: string;
-    username: string;
+export interface User {
+    uid: string;
+    name: string;
+    nickname: string;
     email: string;
-    token: string;
 }
 
 @Injectable()
 export class AuthService {
 
-    private _credentials = new BehaviorSubject < Credentials | null > (null);
+    private _user = new BehaviorSubject < User | null > (null);
 
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
@@ -72,45 +72,11 @@ export class AuthService {
         this._listenLoginMessage(renderer);
         this._listenChangesFromOtherWindows(renderer);
 
-        this._updateCredentials(); // TODO: experiment with setTimeOut
+        this._updateUser(); // TODO: experiment with setTimeOut
     }
 
-    public isAuthenticated(): Observable < boolean > {
-        return this.fromCredentials(
-            credentials => credentials ? true : false
-        );
-    }
-
-    public credentials(): Observable < Credentials | null > {
-        return this.fromCredentials(credentials => credentials);
-    }
-
-    public realname(): Observable < string | null > {
-        return this.fromCredentials(
-            credentials => credentials ? credentials.realname : null
-        );
-    }
-
-    public username(): Observable < string | null > {
-        return this.fromCredentials(
-            credentials => credentials ? credentials.username : null
-        );
-    }
-
-    public email(): Observable < string | null > {
-        return this.fromCredentials(
-            credentials => credentials ? credentials.email : null
-        );
-    }
-
-    public token(): Observable < string | null > {
-        return this.fromCredentials(
-            credentials => credentials ? credentials.token : null
-        );
-    }
-
-    private fromCredentials < T > (extractor: (_: Credentials) => T ): Observable < T > {
-        return this._credentials.asObservable().pipe(map(extractor));
+    public user(): Observable < User | null > {
+        return this._user.asObservable();
     }
 
     /**
@@ -240,7 +206,7 @@ export class AuthService {
      */
     public logOut() {
         this._storageRemover();
-        this._updateCredentials();
+        this._updateUser();
 
         // Triggers updating other windows
         this._commKeyUpdater();
@@ -299,12 +265,12 @@ export class AuthService {
      */
     private _listenLoginMessage(renderer: Renderer2) {
         renderer.listen('window', 'message', (event: MessageEvent) => {
-            if (!this.messageIsAcceptable(event)) {
+            if (!this._messageIsAcceptable(event)) {
                 return;
             }
             this._storageUpdater(event.data);
             event.source.close();
-            this._updateCredentials();
+            this._updateUser();
 
             // Triggers updating other windows
             this._commKeyUpdater();
@@ -322,7 +288,7 @@ export class AuthService {
     private _listenChangesFromOtherWindows(renderer: Renderer2) {
         renderer.listen('window', 'storage', (event: StorageEvent) => {
             if (event.key === this._commKeyName) {
-                this._updateCredentials();
+                this._updateUser();
             }
         });
     }
@@ -331,23 +297,21 @@ export class AuthService {
      * Check if the message is coming from the same domain we use to generate
      * the SSO URL, otherwise it's iffy and shouldn't trust it.
      */
-    private messageIsAcceptable(event: MessageEvent): boolean {
+    private _messageIsAcceptable(event: MessageEvent): boolean {
         return event.origin === this._appURL;
     }
 
-    private _updateCredentials() {
-        const isAuthenticated = this._loggedIn();
-
+    private _updateUser() {
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
 
-        if (isAuthenticated) {
-            this._credentials.next({
-                realname: < string > this._getRealName(),
-                username: < string > this._getUserName(),
-                email: < string > this._getEmail(),
-                token: < string > this._getToken()
+        if (this._tokenService.isTokenValid()) {
+            this._user.next({
+                uid: < string > this._getClaim('sub'),
+                name: < string > this._getClaim('name'),
+                nickname: < string > this._getClaim('nickname'),
+                email: < string > this._getClaim('email')
             });
 
             this._loginCallbacks.map(callback => callback && callback());
@@ -359,34 +323,13 @@ export class AuthService {
             this._timeoutID = window.setTimeout(() => this.logOut(), delay);
         } else {
             this._storageRemover(); // Cleanup possible left behind token
-            this._credentials.next(null);
+            this._user.next(null);
             this._logoutCallbacks.map(callback => callback && callback());
         }
     }
 
-    /**
-     * Check if there's a user logging on and whether the token is still valid.
-     *
-     * @returns  Whether the user user is authenticated or not.
-     */
-    private _loggedIn(): boolean {
-        return this._tokenService.isTokenValid();
-    }
-
-    private _getToken(): string | null {
-        return this._tokenService.getToken();
-    }
-
-    private _getRealName(): string | null {
-        return this._tokenService.getClaim < string, null > ('name', null);
-    }
-
-    private _getUserName(): string | null {
-        return this._tokenService.getClaim < string, null > ('sub', null);
-    }
-
-    private _getEmail(): string | null {
-        return this._tokenService.getClaim < string, null > ('email', null);
+    private _getClaim(claim: string): string | null {
+        return this._tokenService.getClaim < string, null > (claim, null);
     }
 
 }

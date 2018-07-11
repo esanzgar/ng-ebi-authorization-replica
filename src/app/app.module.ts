@@ -32,7 +32,6 @@ export function removeToken(): void {
     ],
     imports: [
         BrowserModule,
-        // AuthModule.forRoot(),
         AuthModule.forRoot({
             aapURL: 'https://api.aai.ebi.ac.uk',
             tokenGetter: getToken,
