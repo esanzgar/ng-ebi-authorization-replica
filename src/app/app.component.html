@@ -19,7 +19,7 @@
 <h3>Advanced handling of tokens:</h3>
 <div>
     <p>Can we present the token to servers? {{ isAuthenticated | async }}</p>
-    <div *ngIf="(expiration | async) as expiration;">
+    <div *ngIf="(expiration | async) as expiration">
         <p>Expiration date of the token: {{ expiration }}</p>
     </div>
 </div>

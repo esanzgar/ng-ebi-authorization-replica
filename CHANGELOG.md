@@ -1,3 +1,13 @@
+<a name="1.0.0-beta.1"></a>
+# [1.0.0-beta.1](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.11...1.0.0-beta.1) (2018-07-12)
+
+### Features
+* changed name of the library to `ng-ebi-authorization`
+* uses `User` interface instead of `Credentials`
+* `User` interface contain new member such  `uid` (unique identifier),
+  `nickname`, etc.
+* remove the alternative way of providing credential information
+
 <a name="1.0.0-alpha.11"></a>
 # [1.0.0-alpha.11](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/compare/1.0.0-alpha.10...1.0.0-alpha.11) (2018-06-20)
 
