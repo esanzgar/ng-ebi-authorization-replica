@@ -101,7 +101,7 @@ import {
     <button (click)="auth.tabOpen()">Login new tab</button>
     <button (click)="auth.logOut()">Logout</button>
 
-    <div *ngIf="(user | async) as user; else loggedOut">
+    <div *ngIf="user | async; else loggedOut">
         <p>Name: {{ user.name }}</p>
         <p>Unique Identifier: {{ user.uid }}</p>
         <p>Email: {{ user.email }}</p>
@@ -235,16 +235,14 @@ export class AppComponent implements OnInit {
     constructor(
         // Public for demonstration purposes
         private auth: AuthService,
-        private tokens: TokenService,
         private jwt: JwtHelperService
     ) {
         this.user = auth.user();
 
         this.expiration = this.user.pipe(
-            map(_ => {
-                let token = this.tokens.getToken();
+            map(user => {
                 try {
-                    return jwt.getTokenExpirationDate(<string>token);
+                    return jwt.getTokenExpirationDate(<string>user.token);
                 } catch (e) {
                     return null;
                 }

@@ -61,6 +61,8 @@ describe('AuthService with a non-expired token', () => {
                 expect(user.name).toEqual('Ed Munden Gras');
                 expect(user.nickname).toEqual('6f37a0beb7b16f37a0beb7b1b');
                 expect(user.email).toEqual('test@ebi.ac.uk');
+                // tslint:disable-next-line:max-line-length
+                expect(user.token).toEqual('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3RzaS5lYmkuYWMudWsiLCJleHAiOjEwMDAwMDAwMDAwMDAsImp0aSI6InR6Wmo4Z29xUWVMRVBNakxIMDJwVEEiLCJpYXQiOjE1MTgwODMzNzMsInN1YiI6InVzci03NWY0YjAwMCIsImVtYWlsIjoidGVzdEBlYmkuYWMudWsiLCJuaWNrbmFtZSI6IjZmMzdhMGJlYjdiMTZmMzdhMGJlYjdiMWIiLCJuYW1lIjoiRWQgTXVuZGVuIEdyYXMiLCJkb21haW5zIjpbImFhcC11c2Vycy1kb21haW4iXX0.up6dm5r1KB0yunL5vlyHpf8citI1JqMKlhzdg0oEXII');
             }
         });
     });

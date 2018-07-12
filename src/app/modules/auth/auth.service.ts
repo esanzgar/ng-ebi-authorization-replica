@@ -31,6 +31,7 @@ export interface User {
     name: string;
     nickname: string;
     email: string;
+    token: string;
 }
 
 @Injectable()
@@ -311,7 +312,8 @@ export class AuthService {
                 uid: < string > this._getClaim('sub'),
                 name: < string > this._getClaim('name'),
                 nickname: < string > this._getClaim('nickname'),
-                email: < string > this._getClaim('email')
+                email: < string > this._getClaim('email'),
+                token: < string > this._tokenService.getToken()
             });
 
             this._loginCallbacks.map(callback => callback && callback());
