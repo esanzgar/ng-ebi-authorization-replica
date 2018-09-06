@@ -26,10 +26,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth.git"
+    "url": "https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization.git"
   },
   "bugs": {
-    "url": "https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/issues"
+    "url": "https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/issues"
   },
   "dependencies": {},
   "peerDependencies": {
