@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('ng-aap-auth App', () => {
+describe('ng-ebi-authorization App', () => {
   let page: AppPage;
 
   beforeEach(() => {

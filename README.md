@@ -1,7 +1,7 @@
-# angular-aap-auth
+# ng-ebi-authorization
 
-The angular-aap-auth is a simple authentication Angular library that relies on
-EBI's Authentication and Authorization Profile (AAP) infrastructure. After
+The ng-ebi-authorization is a simple authentication Angular library that relies
+on EBI's Authentication and Authorization Profile (AAP) infrastructure. After
 successful login, a JWT token is stored on the browser (via cookie, local or
 session storage).
 
@@ -10,19 +10,19 @@ session storage).
 To install this library, run:
 
 ```
-npm install --save angular-aap-auth @auth0/angular-jwt
+npm install --save ng-ebi-authorization @auth0/angular-jwt
 
 or
 
-yarn add angular-aap-auth @auth0/angular-jwt
+yarn add ng-ebi-authorization @auth0/angular-jwt
 ```
 
 Compatibility table
 
-Angular version | angular-aap-auth version
+Angular version | ng-ebi-authorization version
 --- | ---
->=5 <6 | <=1.0.0-alpha.7
->=6 <7 | >=1.0.0-alpha.8
+>=5 <6 | <=angular-aap-auth@1.0.0-alpha.7
+>=6 <7 | >=ng-ebi-authorization@1.0.0-alpha.8
 
 ## Consuming the library
 
@@ -47,7 +47,7 @@ import {
 
 import {
     AuthModule
-} from 'angular-aap-auth';
+} from 'ng-ebi-authorization';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
@@ -92,7 +92,7 @@ import {
 import {
     AuthService,
     User
-} from 'angular-aap-auth';
+} from 'ng-ebi-authorization';
 
 @Component({
     selector: 'app-root',
@@ -146,7 +146,7 @@ import {
 } from './app.component';
 import {
     AuthModule
-} from 'angular-aap-auth';
+} from 'ng-ebi-authorization';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
@@ -203,7 +203,7 @@ import {
 import {
     AuthService,
     TokenService // Needed for JWT claim introspection
-} from 'angular-aap-auth';
+} from 'ng-ebi-authorization';
 
 import {
     JwtHelperService,
@@ -293,4 +293,4 @@ Read up on our guidelines for [contributing][contributing].
 ## License
 
 Apache 2.0 © [EMBL - European Bioinformatics Institute](https://www.ebi.ac.uk/about/terms-of-use)
-[contributing]: https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/blob/master/CONTRIBUTING.md
+[contributing]: https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/blob/master/CONTRIBUTING.md

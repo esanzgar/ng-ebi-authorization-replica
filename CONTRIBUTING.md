@@ -1,17 +1,17 @@
-# Contributing to angular-aap-auth
+# Contributing to ng-ebi-authorization
 
-Thanks for your willingness to contribute to the angular-aap-auth library.
+Thanks for your willingness to contribute to the ng-ebi-authorization library.
 
 ## Setup
 
 If you have writing permission into project's repo, then clone it locally.
 
 ```
-git clone https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth
+git clone https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization
 
 or
 
-git clone git@gitlab.ebi.ac.uk:tools-glue/angular-aap-auth
+git clone git@gitlab.ebi.ac.uk:tools-glue/ng-ebi-authorization
 ```
 
 Otherwise, fork the repo using GitLab, and submit pull requests.
