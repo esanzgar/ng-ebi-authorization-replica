@@ -1,3 +1,10 @@
+<a name="1.0.0-beta.2"></a>
+# [1.0.0-beta.2](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.1...1.0.0-beta.2) (2018-09-10)
+
+### Features
+* documentation improvements
+* corrections on the name of the library.
+
 <a name="1.0.0-beta.1"></a>
 # [1.0.0-beta.1](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-alpha.11...1.0.0-beta.1) (2018-07-12)
 
