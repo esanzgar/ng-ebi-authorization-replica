@@ -5,15 +5,21 @@ import {
     NgModule
 } from '@angular/core';
 
+// Modules
 import {
-    AppComponent
-} from './app.component';
+  environment
+} from 'src/environments/environment';
 import {
     AuthModule
 } from './modules/auth/auth.module';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
+
+// Components
+import {
+    AppComponent
+} from './app.component';
 
 export function getToken(): string {
     return localStorage.getItem('jwt_token') || '';
@@ -33,7 +39,7 @@ export function removeToken(): void {
     imports: [
         BrowserModule,
         AuthModule.forRoot({
-            aapURL: 'https://api.aai.ebi.ac.uk',
+            aapURL: environment.aapURL,
             tokenGetter: getToken,
             tokenUpdater: updateToken,
         //     tokenRemover: removeToken  // Optional

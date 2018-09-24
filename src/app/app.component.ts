@@ -12,16 +12,16 @@ import {
 import {
     AuthService,
     User
-} from 'app/modules/auth/auth.service';
+} from './modules/auth/auth.service';
 import {
     TokenService
-} from 'app/modules/auth/token.service';
+} from './modules/auth/token.service';
 import {
     JwtHelperService,
 } from '@auth0/angular-jwt';
 
 @Component({
-    selector: 'app-root',
+    selector: 'auth-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })

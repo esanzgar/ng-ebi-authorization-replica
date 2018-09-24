@@ -12,7 +12,7 @@ import {
 } from './app.component';
 import {
     CommonStub
-} from 'app/../../testing/common';
+} from 'testing/common';
 
 describe('AppComponent', () => {
     beforeEach(async (() => {

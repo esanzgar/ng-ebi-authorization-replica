@@ -13,7 +13,7 @@ import {
 import {
     VALID_TOKEN,
     EXPIRED_TOKEN
-} from 'app/../../testing/tokens';
+} from 'testing/tokens';
 
 describe('TokenService (valid token)', () => {
     beforeEach(() => {

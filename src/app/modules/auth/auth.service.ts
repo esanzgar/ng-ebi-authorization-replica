@@ -158,7 +158,7 @@ export class AuthService {
      * @returns The SSO URL.
      *
      */
-        public getSSOURL(options?: LoginOptions): string {
+    public getSSOURL(options?: LoginOptions): string {
         let extra = '';
         if (options) {
             this._filterLoginOptions(options);
@@ -270,7 +270,9 @@ export class AuthService {
                 return;
             }
             this._storageUpdater(event.data);
-            event.source.close();
+            if (event.source) {
+                event.source.close();
+            }
             this._updateUser();
 
             // Triggers updating other windows

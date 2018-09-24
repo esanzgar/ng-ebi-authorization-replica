@@ -18,7 +18,7 @@ import {
 import {
     VALID_TOKEN,
     EXPIRED_TOKEN
-} from 'app/../../testing/tokens';
+} from 'testing/tokens';
 import {
     AAP_CONFIG,
     DEFAULT_CONF
