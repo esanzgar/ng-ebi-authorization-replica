@@ -1,3 +1,9 @@
+<a name="1.0.0-beta.3"></a>
+# [1.0.0-beta.3](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.2...1.0.0-beta.3) (2018-10-23)
+
+### Features
+* updated to angular version 7
+
 <a name="1.0.0-beta.2"></a>
 # [1.0.0-beta.2](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.1...1.0.0-beta.2) (2018-09-10)
 
