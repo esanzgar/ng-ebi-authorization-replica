@@ -270,9 +270,14 @@ export class AuthService {
                 return;
             }
             this._storageUpdater(event.data);
+
+            // I don't know how to type guard event.source
+            // This doesn't work
+            // if (event.source instanceof Window) {
             if (event.source) {
-                event.source.close();
+                (event.source as Window).close();
             }
+
             this._updateUser();
 
             // Triggers updating other windows
