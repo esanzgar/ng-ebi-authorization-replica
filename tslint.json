@@ -1,6 +1,5 @@
 {
   "extends": [
-    "rxjs-tslint-rules",
     "codelyzer"
   ],
   "rules": {
