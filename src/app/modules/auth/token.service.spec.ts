@@ -11,8 +11,8 @@ import {
     JwtHelperService
 } from '@auth0/angular-jwt';
 import {
-    VALID_TOKEN,
-    EXPIRED_TOKEN
+    VALID_TOKEN_1,
+    EXPIRED_TOKEN_1
 } from 'testing/tokens';
 
 describe('TokenService (valid token)', () => {
@@ -21,7 +21,7 @@ describe('TokenService (valid token)', () => {
             providers: [{
                     provide: JWT_OPTIONS,
                     useValue: {
-                        tokenGetter: () => VALID_TOKEN
+                        tokenGetter: () => VALID_TOKEN_1
                     }
                 },
                 JwtHelperService,
@@ -35,7 +35,7 @@ describe('TokenService (valid token)', () => {
     }));
 
     it('getToken should return valid token', inject([TokenService], (service: TokenService) => {
-        expect(service.getToken()).toBe(VALID_TOKEN);
+        expect(service.getToken()).toBe(VALID_TOKEN_1);
     }));
 
     it('token should be valid', inject([TokenService], (service: TokenService) => {
@@ -47,7 +47,7 @@ describe('TokenService (valid token)', () => {
     }));
 
     it('getClaim should return correct value', inject([TokenService], (service: TokenService) => {
-        expect(service.getClaim('iss', 'Dummy')).toBe('https://tsi.ebi.ac.uk');
+        expect(service.getClaim('iss', 'Dummy')).toBe('https://aai.ebi.ac.uk/sp');
     }));
 
     it('getClaim should with non-existing claim should return default value "Dummy"', inject([TokenService], (service: TokenService) => {
@@ -69,7 +69,7 @@ describe('TokenService (expired token)', () => {
             providers: [{
                     provide: JWT_OPTIONS,
                     useValue: {
-                        tokenGetter: () => EXPIRED_TOKEN
+                        tokenGetter: () => EXPIRED_TOKEN_1
                     }
                 },
                 JwtHelperService,
@@ -83,7 +83,7 @@ describe('TokenService (expired token)', () => {
     }));
 
     it('getToken should return expired token', inject([TokenService], (service: TokenService) => {
-        expect(service.getToken()).toBe(EXPIRED_TOKEN);
+        expect(service.getToken()).toBe(EXPIRED_TOKEN_1);
     }));
 
     it('token should not be valid', inject([TokenService], (service: TokenService) => {
@@ -95,7 +95,7 @@ describe('TokenService (expired token)', () => {
     }));
 
     it('getClaim should return correct value', inject([TokenService], (service: TokenService) => {
-        expect(service.getClaim('iss', 'Dummy')).toBe('https://tsi.ebi.ac.uk');
+        expect(service.getClaim('iss', 'Dummy')).toBe('https://aai.ebi.ac.uk/sp');
     }));
 
     it('getClaim should with non-existing claim should return default value "Dummy"', inject([TokenService], (service: TokenService) => {

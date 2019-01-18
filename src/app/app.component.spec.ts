@@ -1,46 +1,58 @@
 import {
+    ComponentFixture,
     TestBed,
     async
 } from '@angular/core/testing';
+
 import {
-    fakeAsync,
-    flushMicrotasks
-} from '@angular/core/testing';
+    CommonTestingModule
+} from 'testing/common';
+
+import {
+    AuthService
+} from 'src/app/modules/auth/auth.service';
 
 import {
     AppComponent
 } from './app.component';
-import {
-    CommonStub
-} from 'testing/common';
 
 describe('AppComponent', () => {
+    let auth: AuthService;
+    let fixture: ComponentFixture<AppComponent>;
+    let app: AppComponent;
+
     beforeEach(async (() => {
         TestBed.configureTestingModule({
             imports: [
-                CommonStub
+                CommonTestingModule,
             ],
             declarations: [
                 AppComponent
             ],
         }).compileComponents();
+
+        fixture = TestBed.createComponent(AppComponent);
+        fixture.detectChanges();
+        app = fixture.componentInstance;
+
+        auth = TestBed.get(AuthService);
     }));
+
     it('should create the app', async (() => {
-        const fixture = TestBed.createComponent(AppComponent);
-        const app = fixture.debugElement.componentInstance;
         expect(app).toBeTruthy();
     }));
-    it(`should not be authenticated`, async (() => {
-        const fixture = TestBed.createComponent(AppComponent);
-        const app = fixture.debugElement.componentInstance;
-        app.isAuthenticated.subscribe((result: any) => {
+
+    fit(`should not be authenticated`, async (() => {
+        auth.logOut();
+        app.isAuthenticated$.subscribe(result => {
             expect(result).toEqual('Nope');
         });
+        auth.logOut();
     }));
+
     it('should render title in a h1 tag', async (() => {
-        const fixture = TestBed.createComponent(AppComponent);
-        fixture.detectChanges();
         const compiled = fixture.debugElement.nativeElement;
         expect(compiled.querySelector('h1').textContent).toContain('Auth testing app');
     }));
 });
+

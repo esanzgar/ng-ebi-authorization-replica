@@ -7,14 +7,21 @@ import {
 
 // Modules
 import {
-  environment
-} from 'src/environments/environment';
+    HttpClientModule
+} from '@angular/common/http';
 import {
     AuthModule
 } from './modules/auth/auth.module';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
+import {
+    ReactiveFormsModule
+} from '@angular/forms';
+
+import {
+  environment
+} from 'src/environments/environment';
 
 // Components
 import {
@@ -32,12 +39,16 @@ export function removeToken(): void {
     return localStorage.removeItem('jwt_token');
 }
 
+const domain = environment.aapURL.replace('https://', '');
+
 @NgModule({
     declarations: [
         AppComponent
     ],
     imports: [
         BrowserModule,
+        HttpClientModule,
+        ReactiveFormsModule,
         AuthModule.forRoot({
             aapURL: environment.aapURL,
             tokenGetter: getToken,
@@ -47,7 +58,7 @@ export function removeToken(): void {
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
-                whitelistedDomains: []
+                whitelistedDomains: [environment.aapDomain]
             }
         })
     ],

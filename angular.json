@@ -78,6 +78,14 @@
             "assets": [
               "src/assets",
               "src/favicon.ico"
+            ],
+            "codeCoverage": true,
+            "codeCoverageExclude": [
+              "src/polyfills.ts",
+              "src/test.ts",
+              "src/environments/environment.ts",
+              "src/app/modules/auth/auth.config.ts",
+              "src/app/modules/auth/auth.module.ts"
             ]
           }
         },

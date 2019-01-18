@@ -5,6 +5,11 @@ import {
     Renderer2
 } from '@angular/core';
 import {
+    HttpClient,
+    HttpHeaders,
+    HttpResponse
+} from '@angular/common/http';
+import {
     Observable
 } from 'rxjs';
 import {
@@ -50,7 +55,7 @@ export class AuthService {
     private readonly _storageUpdater: (newToken: any) => void;
     private readonly _storageRemover: () => void;
 
-    // This two properties are used for inter-window communcation.
+    // This two properties are used for inter-window communication.
     // It is achieve through the update of the dummy key storage '_commKeyName'
     private readonly _commKeyName = 'AngularAapAuthUpdated';
     private readonly _commKeyUpdater = () => localStorage.setItem(this._commKeyName, '' + new Date().getTime());
@@ -58,6 +63,7 @@ export class AuthService {
     constructor(
         private _rendererFactory: RendererFactory2,
         private _tokenService: TokenService,
+        private _http: HttpClient,
         @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
         this._domain = encodeURIComponent(window.location.origin);
@@ -94,17 +100,17 @@ export class AuthService {
      * @param left Position of the left corners. If it is a negative
      *             number it centres the login window on the screen.
      */
-    public windowOpen(loginOptions?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
+    public openLoginWindow(loginOptions?: LoginOptions, width = 650, height = 1000, left = -1, top = -1) {
         if (left < 0) {
             const screenWidth = screen.width;
             if (screenWidth > width) {
-                left = Math.round(screenWidth / 2 - width / 2);
+                left = Math.round((screenWidth - width) / 2);
             }
         }
         if (top < 0) {
             const screenHeight = screen.height;
             if (screenHeight > height) {
-                top = Math.round(screenHeight / 2 - height / 2);
+                top = Math.round((screenHeight - height) / 2);
             }
         }
 
@@ -131,6 +137,16 @@ export class AuthService {
     }
 
     /**
+     * @deprecated use openLoginWindow method instead (top and left arguments are inverted in the new method)
+     * since version 1.0.0-beta.5.
+     * windowOpen will be deleted in version 1.0.0
+     */
+    public windowOpen(loginOptions?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
+        this._deprecationWarning('windowOpen', 'openLoginWindow');
+        this.openLoginWindow(loginOptions, width, height, left, top);
+    }
+
+    /**
      * Functions that opens a tab (in modern browser).
      *
      * See method _filterLoginOptions regarding security risks of certain
@@ -138,11 +154,21 @@ export class AuthService {
      *
      * @param loginOptions Options passed as URL parameters to the SSO.
      */
-    public tabOpen(loginOptions?: LoginOptions) {
+    public openLoginTab(loginOptions?: LoginOptions) {
         const loginWindow = window.open(this.getSSOURL(loginOptions), 'Sign in to Elixir');
         if (loginWindow) {
             loginWindow.focus();
         }
+    }
+
+    /**
+     * @deprecated use openLoginTab method instead
+     * since version 1.0.0-beta.5.
+     * tabOpen will be deleted in version 1.0.0
+     */
+    public tabOpen(loginOptions?: LoginOptions) {
+        this._deprecationWarning('tabOpen', 'openLoginTab');
+        this.openLoginTab(loginOptions);
     }
 
     /**
@@ -260,6 +286,32 @@ export class AuthService {
     }
 
     /**
+     * Refresh token
+     *
+     * @returns true when token is successfully refreshed
+     */
+    public refresh(): Observable < boolean > {
+        const url = `${this._appURL}/token`;
+        return this._http.get(url, {
+            observe: 'response',
+            responseType: 'text'
+        }).pipe(
+            map(response => {
+                if (response.status === 200 && response.body) {
+                    this._storageRemover();
+                    this._storageUpdater(response.body);
+                    this._updateUser(false);
+
+                    // Triggers updating other windows
+                    this._commKeyUpdater();
+                    return true;
+                }
+                return false;
+            })
+        );
+    }
+
+    /**
      * Listen for login messages from other windows.
      * These messages contain the tokens from the AAP.
      * If a token is received then the callbacks are triggered.
@@ -309,7 +361,7 @@ export class AuthService {
         return event.origin === this._appURL;
     }
 
-    private _updateUser() {
+    private _updateUser(invokeLoginCallbacks = true) {
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
@@ -323,7 +375,9 @@ export class AuthService {
                 token: < string > this._tokenService.getToken()
             });
 
-            this._loginCallbacks.map(callback => callback && callback());
+            if (invokeLoginCallbacks) {
+                this._loginCallbacks.map(callback => callback && callback());
+            }
 
             // Schedule future logout event base on token expiration
             const expireDate = < Date > this._tokenService.getTokenExpirationDate();
@@ -341,4 +395,8 @@ export class AuthService {
         return this._tokenService.getClaim < string, null > (claim, null);
     }
 
+    private _deprecationWarning(oldMethod: string, newMethod: string) {
+        window.console.warn(`Method '${oldMethod}' has been deprecated, please use '${newMethod}' method instead`);
+    }
 }
+

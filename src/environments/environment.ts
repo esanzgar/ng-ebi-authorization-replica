@@ -3,7 +3,12 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
+// const domain = 'api.aai.ebi.ac.uk';
+const domain = 'explore.api.aai.ebi.ac.uk';
+
 export const environment = {
-  aapURL: 'https://api.aai.ebi.ac.uk',
-  production: false
+    aapDomain: domain,
+    aapURL: `https://${domain}`,
+    production: false
 };
+

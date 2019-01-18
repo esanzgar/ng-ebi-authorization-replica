@@ -13,16 +13,28 @@ module.exports = function (config) {
     plugins: [
       'karma-jasmine',
       'karma-jasmine-html-reporter',
+      'karma-coverage-istanbul-reporter',
       'karma-chrome-launcher',
       '@angular-devkit/build-angular/plugins/karma'
     ],
     client:{
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
+    coverageIstanbulReporter: {
+      dir: require('path').join(__dirname, '../coverage'),
+      reports: [ 'text-summary', 'text', 'html', 'lcovonly' ],
+      fixWebpackSourcePaths: true,
+      thresholds: {
+        statements: 80,
+        lines: 80,
+        branches: 80,
+        functions: 80
+      }
+    },
     angularCli: {
       environment: 'prod'
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ['progress', 'coverage-istanbul', 'kjhtml', ],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,

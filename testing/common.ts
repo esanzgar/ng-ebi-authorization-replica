@@ -3,6 +3,13 @@ import {
 } from '@angular/core';
 
 import {
+    ReactiveFormsModule,
+} from '@angular/forms';
+import {
+    HttpClientTestingModule,
+} from '@angular/common/http/testing';
+
+import {
     JwtModule
 } from '@auth0/angular-jwt';
 import {
@@ -22,6 +29,8 @@ export function removeToken(): void {
 }
 @NgModule({
     imports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule,
         AuthModule.forRoot({
             aapURL: 'https://blah.com',
             tokenGetter: getToken,
@@ -31,13 +40,15 @@ export function removeToken(): void {
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
-                whitelistedDomains: []
+                whitelistedDomains: ['blah.com']
             }
         }),
     ],
     exports: [
+        ReactiveFormsModule,
+        HttpClientTestingModule,
         JwtModule,
         AuthModule,
     ],
 })
-export class CommonStub {}
+export class CommonTestingModule {}

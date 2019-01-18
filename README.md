@@ -33,11 +33,16 @@ The library exposes user information through `User` objects, which have informat
 
 - The unique identifier (`uid`): if a unique identifier has to be used, use this field.
 - Name (`name`): the full name of the user, for display purposes
-- Nickname (`nickname`): if the user is an local aap account, it will contain the username, otherwise will have a weird string.
-- Email (`email`): the account's email, this is for information only and several accounts may have the same username.
-- Domains (`domains`): not directly provided. They may be misused into dong checking if the user has authorization to do some actions.
-  This should be done always server-side, if the domains information wants to be shown to the user as information it can still be done,
-  check the [Advanced usage](#advanced-usage) to see how to expose arbitrary token claims, or the embedded app.
+- Nickname (`nickname`): if the user is in a local aap account, it will contain
+  the username, otherwise will have a weird string.
+- Email (`email`): the account's email, this is for information only and several
+  accounts may have the same username.
+- Domains (`domains`): not directly provided because they may be misused.
+  The checking of domains should be done always server-side. If the domains
+  information wants to be shown to the user as information it can still be done,
+  check the [Advanced usage](#advanced-usage) to see how to expose arbitrary
+  token claims, or the embedded app.
+
 In your Angular `AppModule` (app.module.ts):
 
 ```typescript
@@ -48,6 +53,9 @@ import {
     NgModule
 } from '@angular/core';
 
+import {
+    HttpClientModule
+} from '@angular/common/http';
 import {
     AuthModule
 } from 'ng-ebi-authorization';
@@ -65,6 +73,7 @@ import {
     ],
     imports: [
         BrowserModule,
+        HttpClientModule,
         AuthModule.forRoot(), // Defaults to localStorage `id_token` key.
         JwtModule.forRoot({
             config: {
@@ -100,8 +109,8 @@ import {
 @Component({
     selector: 'app-root',
     template: `
-    <button (click)="auth.windowOpen()">Login small window</button>
-    <button (click)="auth.tabOpen()">Login new tab</button>
+    <button (click)="auth.openLoginWindow()">Login small window</button>
+    <button (click)="auth.openLoginTab()">Login new tab</button>
     <button (click)="auth.logOut()">Logout</button>
 
     <div *ngIf="user | async; else loggedOut">
@@ -145,14 +154,18 @@ import {
 } from '@angular/core';
 
 import {
-    AppComponent
-} from './app.component';
+    HttpClientModule
+} from '@angular/common/http';
 import {
     AuthModule
 } from 'ng-ebi-authorization';
 import {
     JwtModule
 } from '@auth0/angular-jwt';
+
+import {
+    AppComponent
+} from './app.component';
 
 export function getToken(): string {
     return localStorage.getItem('jwt_token') || '';
@@ -171,6 +184,7 @@ export function removeToken(): void {
     ],
     imports: [
         BrowserModule,
+        HttpClientModule
         AuthModule.forRoot({
             aapURL: 'https://api.aai.ebi.ac.uk',
             tokenGetter: getToken,
@@ -233,33 +247,44 @@ export class AppComponent implements OnInit {
 
     // How to obtain other claims
     expiration: Observable < Date | null > ;
+    domains: Observable < string[] > ;
     iss: Observable < string | null > ;
 
     constructor(
         // Public for demonstration purposes
         private auth: AuthService,
-        private jwt: JwtHelperService
+        private token: TokenService
     ) {
         this.user = auth.user();
 
         this.expiration = this.user.pipe(
             map(user => {
                 try {
-                    return jwt.getTokenExpirationDate(<string>user.token);
+                    return token.getTokenExpirationDate();
                 } catch (e) {
                     return null;
                 }
             })
         );
 
+        this.domains = this.user.pipe(
+            map(_ => {
+                try {
+                    return token.getClaim<string[], string[]>('domains', []);
+                } catch (e) {
+                    return [];
+                }
+            })
+        );
+
         this.iss = this.user.pipe(
-            map(_ => jwt.getClaim < string, null > ('iss', null))
+            map(_ => token.getClaim < string, null > ('iss', null))
         );
     }
 
     openLoginWindow() {
         // ttl: time of live, and location
-        this.auth.windowOpen({
+        this.auth.openLoginWindow({
             'ttl': '1'
         }, 500, 500, 100, 100);
     }

@@ -4,25 +4,130 @@
         Auth testing app
     </h1>
 </div>
-<div class="spread">
-    <button (click)="auth.windowOpen({ttl: '1'})">Login small window</button>
-    <button (click)="auth.tabOpen({ttl: '1'})">Login new tab</button>
+<div class="spread separator">
+    <button (click)="auth.openLoginWindow({ttl: '1'})">ELIXIR login small
+        window
+        (expire
+        in 1 minute)</button>
+    <button (click)="auth.openLoginTab()">ELIXIR login new tab (default
+        expiration)</button>
     <button (click)="auth.logOut()">Logout</button>
 </div>
-<div *ngIf="(user | async) as user; else loggedOut">
+
+<h3 class="separator">Create AAP account:</h3>
+<form [formGroup]="createAAP">
+    <label>
+        Name:
+        <input formControlName="name" />
+    </label>
+    <label>
+        Username:
+        <input formControlName="username" />
+    </label>
+    <label>
+        Password:
+        <input formControlName="password" />
+    </label>
+    <label>
+        Email:
+        <input formControlName="email" />
+    </label>
+    <label>
+        Organization:
+        <input formControlName="organization" />
+    </label>
+</form>
+<button type="button" [disabled]="createAAP.invalid"
+    (click)="createAAPaccount()">Create account</button>
+
+<h3 class="separator">Login AAP account:</h3>
+<form [formGroup]="loginAAP">
+    <label>
+        Username:
+        <input formControlName="username" />
+    </label>
+    <label>
+        Password:
+        <input formControlName="password" />
+    </label>
+</form>
+<button type="button" [disabled]="loginAAP.invalid"
+    (click)="loginAAPaccount()">AAP login</button>
+
+<h3 class="separator">Change AAP account password:</h3>
+<form [formGroup]="changePasswordAAP">
+    <label>
+        Username:
+        <input formControlName="username" />
+    </label>
+    <label>
+        Old password:
+        <input formControlName="oldPassword" />
+    </label>
+    <label>
+        New password:
+        <input formControlName="newPassword" />
+    </label>
+</form>
+<button type="button" [disabled]="changePasswordAAP.invalid"
+    (click)="changePasswordAAPaccount()">AAP login</button>
+
+<div *ngIf="(user$ | async) as user; else loggedOut" class="separator">
+    <h3 class="separator">Refresh token:</h3>
+    <button type="button" (click)="refresh()">Refresh token
+        (show new domains)</button>
+
+    <h3 class="separator">Create new domain (group/team):</h3>
+    <form [formGroup]="domain">
+        <label>
+            Name:
+            <input formControlName="domainName" />
+        </label>
+        <label>
+            Description:
+            <input formControlName="domainDesc" />
+        </label>
+    </form>
+
+    <button type="button" [disabled]="domain.invalid"
+        (click)="createDomain(user.uid)">Create
+        domain</button>
+
+    <h3 class="separator">User details:</h3>
     <p>Unique ID: {{ user.uid }}</p>
     <p>Name: {{ user.name }}</p>
     <p>Nickname: {{ user.nickname }}</p>
     <p>Email: {{ user.email }}</p>
     <p>Token: {{ user.token }}</p>
+
+    <h3 class="separator">List of domains:</h3>
+    <ul>
+        <li *ngFor="let domain of domains$ | async">
+            {{ domain }}
+        </li>
+    </ul>
+
+    <h3 class="separator">List of managed domains:</h3>
+    <ul>
+        <li *ngFor="let domain of managedDomains$ | async">
+            {{ domain.domainName }}: {{ domain.domainDesc }}
+
+            <button type="button"
+                (click)="deleteDomain(domain.domainReference)">Delete
+                domain</button>
+        </li>
+    </ul>
 </div>
-<h3>Advanced handling of tokens:</h3>
+<ng-template #loggedOut>
+    <h2>Please, log in, either through the federated ELIXIR system or through the
+    AAP</h2>
+</ng-template>
+
+<h3 class="separator">Advanced handling of tokens:</h3>
 <div>
-    <p>Can we present the token to servers? {{ isAuthenticated | async }}</p>
-    <div *ngIf="(expiration | async) as expiration">
+    <p>Can we present the token to servers? {{ isAuthenticated$ | async }}</p>
+    <div *ngIf="(expiration$ | async) as expiration">
         <p>Expiration date of the token: {{ expiration }}</p>
     </div>
 </div>
-<ng-template #loggedOut>
-    <p>Please, log in.</p>
-</ng-template>
+
