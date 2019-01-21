@@ -20,7 +20,7 @@ import {
 } from '@angular/forms';
 
 import {
-  environment
+    environment
 } from 'src/environments/environment';
 
 // Components
@@ -53,17 +53,17 @@ const domain = environment.aapURL.replace('https://', '');
             aapURL: environment.aapURL,
             tokenGetter: getToken,
             tokenUpdater: updateToken,
-        //     tokenRemover: removeToken  // Optional
+            //     tokenRemover: removeToken  // Optional
         }),
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
-                whitelistedDomains: [environment.aapDomain]
+                whitelistedDomains: [environment.aapDomain],
+                blacklistedRoutes: [environment.loginAAP],
             }
         })
     ],
-    providers: [
-    ],
+    providers: [],
     bootstrap: [AppComponent]
 })
 export class AppModule {}

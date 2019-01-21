@@ -52,6 +52,8 @@ export class AuthService {
     // Configuration
     private readonly _domain: string;
     private readonly _appURL: string;
+    private readonly _tokenURL: string;
+    private readonly _authURL: string;
     private readonly _storageUpdater: (newToken: any) => void;
     private readonly _storageRemover: () => void;
 
@@ -67,7 +69,11 @@ export class AuthService {
         @Inject(AAP_CONFIG) private config: AuthConfig
     ) {
         this._domain = encodeURIComponent(window.location.origin);
+
         this._appURL = config.aapURL.replace(/\/$/, '');
+        this._authURL = `${this._appURL}/auth`;
+        this._tokenURL = `${this._appURL}/token`;
+
         this._storageUpdater = config.tokenUpdater;
         if (config.tokenRemover) {
             this._storageRemover = config.tokenRemover;
@@ -196,36 +202,6 @@ export class AuthService {
     }
 
     /**
-     * Filters options that are unsecure.
-     *
-     * See the advance options that can be requested through the options parameter:
-     * https://api.aai.ebi.ac.uk/docs/authentication/authentication.index.html#_common_attributes
-     *
-     * The time to live paramenter (ttl) default value is 60 minutes. It is a
-     * big security risk to request longer ttl. If a third party gets hold of
-     * such token, means that they could use it for a day, week, year
-     * (essentially, like having the username/password).
-     *
-     * @param  loginOptions Options passed as URL parameters to the SSO.
-     *
-     *
-     */
-    public _filterLoginOptions(options: LoginOptions) {
-        if (Object.keys(options).indexOf('ttl') > -1) {
-            const ttl: number = +options['ttl'];
-            const softLimit = 60;
-            const hardLimit = 60 * 24;
-            if (ttl > hardLimit) {
-                window.console.error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`);
-                window.console.error(`Expiration request reset to ${hardLimit} minutes.`);
-                options['ttl'] = '' + hardLimit;
-            } else if (ttl > softLimit) {
-                window.console.warn(`Login requested with an expiration longer than ${softLimit} minutes!`);
-            }
-        }
-    }
-
-    /**
      * Functions that logs out the user.
      * It triggers the logout callbacks.
      * It is an arrow function (lambda) because in that way it has a reference
@@ -237,6 +213,95 @@ export class AuthService {
 
         // Triggers updating other windows
         this._commKeyUpdater();
+    }
+
+    /**
+     * Create AAP account
+     *
+     * @returns uid of the new user when account is successfully created otherwise null
+     */
+    public createAAPaccount(newUser: {
+        name: string,
+        username: string,
+        password: string,
+        email: string,
+        organization: string
+    }): Observable < string | null > {
+        return this._http.post(this._authURL, newUser, {
+            observe: 'response',
+            responseType: 'text'
+        }).pipe(
+            map(response => {
+                if (response.status === 200 && response.body) {
+                    return response.body;
+                }
+                return null;
+            })
+        );
+    }
+
+    /**
+     * Login directly through the AAP
+     *
+     * @returns true if the user successfully login, otherwise false
+     */
+    public loginAAP(
+        user: {
+            username: string,
+            password: string,
+        }
+    ): Observable < boolean > {
+        return this._http.get(this._authURL, {
+            observe: 'response',
+            headers: this._createAuthHeader(user),
+            responseType: 'text'
+        }).pipe(
+            map(response => {
+                if (response.status === 200 && response.body) {
+                    this._storageRemover();
+                    this._storageUpdater(response.body);
+                    this._updateUser();
+
+                    // Triggers updating other windows
+                    this._commKeyUpdater();
+                    return true;
+                }
+                return false;
+            })
+        );
+    }
+
+    /**
+     * Change password AAP account
+     *
+     * @returns uid of the new user when account is successfully created otherwise null
+     */
+    public changePasswordAAP({
+        username,
+        oldPassword,
+        newPassword
+    }: {
+        username: string,
+        oldPassword: string,
+        newPassword: string,
+    }): Observable < boolean > {
+        return this._http.patch(this._authURL, {
+            username,
+            password: newPassword
+        }, {
+            observe: 'response',
+            headers: this._createAuthHeader({
+                username,
+                password: oldPassword
+            })
+        }).pipe(
+            map(response => {
+                if (response.status === 200) {
+                    return true;
+                }
+                return false;
+            })
+        );
     }
 
     /**
@@ -291,8 +356,7 @@ export class AuthService {
      * @returns true when token is successfully refreshed
      */
     public refresh(): Observable < boolean > {
-        const url = `${this._appURL}/token`;
-        return this._http.get(url, {
+        return this._http.get(this._tokenURL, {
             observe: 'response',
             responseType: 'text'
         }).pipe(
@@ -309,6 +373,56 @@ export class AuthService {
                 return false;
             })
         );
+    }
+
+    /**
+     * Filters options that are unsecure.
+     *
+     * See the advance options that can be requested through the options parameter:
+     * https://api.aai.ebi.ac.uk/docs/authentication/authentication.index.html#_common_attributes
+     *
+     * The time to live paramenter (ttl) default value is 60 minutes. It is a
+     * big security risk to request longer ttl. If a third party gets hold of
+     * such token, means that they could use it for a day, week, year
+     * (essentially, like having the username/password).
+     *
+     * @param  loginOptions Options passed as URL parameters to the SSO.
+     *
+     *
+     */
+    private _filterLoginOptions(options: LoginOptions) {
+        if (Object.keys(options).indexOf('ttl') > -1) {
+            const ttl: number = +options['ttl'];
+            const softLimit = 60;
+            const hardLimit = 60 * 24;
+            if (ttl > hardLimit) {
+                window.console.error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`);
+                window.console.error(`Expiration request reset to ${hardLimit} minutes.`);
+                options['ttl'] = '' + hardLimit;
+            } else if (ttl > softLimit) {
+                window.console.warn(`Login requested with an expiration longer than ${softLimit} minutes!`);
+            }
+        }
+    }
+
+    /**
+     * Creates Authorization header
+     *
+     * @param object with username and password.
+     *
+     * @returns New authorization header
+     */
+    private _createAuthHeader({
+        username,
+        password
+    }: {
+        username: string,
+        password: string,
+    }) {
+        const authToken = btoa(`${username}:${password}`);
+        return new HttpHeaders({
+            'Authorization': `Basic ${authToken}`
+        });
     }
 
     /**

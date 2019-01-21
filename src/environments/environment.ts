@@ -9,6 +9,7 @@ const domain = 'explore.api.aai.ebi.ac.uk';
 export const environment = {
     aapDomain: domain,
     aapURL: `https://${domain}`,
+    loginAAP: `https://${domain}/auth`,
     production: false
 };
 

@@ -18,7 +18,7 @@ import {
 
 describe('AppComponent', () => {
     let auth: AuthService;
-    let fixture: ComponentFixture<AppComponent>;
+    let fixture: ComponentFixture < AppComponent > ;
     let app: AppComponent;
 
     beforeEach(async (() => {
@@ -42,7 +42,7 @@ describe('AppComponent', () => {
         expect(app).toBeTruthy();
     }));
 
-    fit(`should not be authenticated`, async (() => {
+    it(`should not be authenticated`, async (() => {
         auth.logOut();
         app.isAuthenticated$.subscribe(result => {
             expect(result).toEqual('Nope');
@@ -55,4 +55,3 @@ describe('AppComponent', () => {
         expect(compiled.querySelector('h1').textContent).toContain('Auth testing app');
     }));
 });
-

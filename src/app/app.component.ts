@@ -63,22 +63,42 @@ export class AppComponent implements OnInit {
     // * test forms
     // * add custom sync validator for username
     createAAP = this._fb.group({
-        name: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        username: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        password: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        email: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        organization: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
+        name: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        username: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        password: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        email: ['', {
+            validators: [Validators.required, Validators.email, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        organization: ['', {
+            validators: [Validators.maxLength(255)]
+        }],
     });
 
     loginAAP = this._fb.group({
-        username: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        password: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
+        username: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        password: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
     });
 
     changePasswordAAP = this._fb.group({
-        username: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        oldPassword: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
-        newPassword: ['', {validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]}],
+        username: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        oldPassword: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
+        newPassword: ['', {
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+        }],
     });
 
     domain = this._fb.group({
@@ -169,24 +189,45 @@ export class AppComponent implements OnInit {
      * Create AAP account
      */
     createAAPaccount() {
-        console.log('create AAP account', this.createAAP.value);
-        // this._http.post < Domain > (this.domainsURL, this.domain.value, {
+        this.auth.createAAPaccount(this.createAAP.value).pipe(
+            first(),
+            filter(Boolean),
+            tap(_ => this.createAAP.reset({
+                name: '',
+                username: '',
+                password: '',
+                organization: ''
+            }))
+        ).subscribe();
     }
 
     /**
      * Login AAP account
      */
     loginAAPaccount() {
-        console.log('login AAP account', this.loginAAP.value);
-        // this._http.post < Domain > (this.domainsURL, this.domain.value, {
+        this.auth.loginAAP(this.loginAAP.value).pipe(
+            first(),
+            filter(Boolean),
+            tap(_ => this.createAAP.reset({
+                name: '',
+                username: '',
+            }))
+        ).subscribe();
     }
 
     /**
      * Change password AAP account
      */
     changePasswordAAPaccount() {
-        console.log('Password change AAP account', this.changePasswordAAP.value);
-        // this._http.post < Domain > (this.domainsURL, this.domain.value, {
+        this.auth.changePasswordAAP(this.changePasswordAAP.value).pipe(
+            first(),
+            filter(Boolean),
+            tap(_ => this.changePasswordAAP.reset({
+                name: '',
+                oldPassword: '',
+                newPassword: ''
+            }))
+        ).subscribe();
     }
 
     /**
@@ -207,15 +248,18 @@ export class AppComponent implements OnInit {
                 }
                 return null;
             }),
-            tap(_ => this.domain.reset({domainName: '', domainDesc: ''})),
+            tap(_ => this.domain.reset({
+                domainName: '',
+                domainDesc: ''
+            })),
             filter(Boolean),
             concatMap(gid => this._http.put < Domain > (`${this.domainsURL}/${gid}/${uid}/user`, null, {
                 observe: 'response',
             })),
             first(),
             map(response => {
-                    this.refresh();
-                    return response;
+                this.refresh();
+                return response;
             }),
         ).subscribe();
     }
