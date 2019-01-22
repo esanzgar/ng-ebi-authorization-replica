@@ -260,23 +260,11 @@ export class AppComponent implements OnInit {
         this.user = auth.user();
 
         this.expiration = this.user.pipe(
-            map(user => {
-                try {
-                    return token.getTokenExpirationDate();
-                } catch (e) {
-                    return null;
-                }
-            })
+            map(user => token.getTokenExpirationDate())
         );
 
         this.domains = this.user.pipe(
-            map(_ => {
-                try {
-                    return token.getClaim<string[], string[]>('domains', []);
-                } catch (e) {
-                    return [];
-                }
-            })
+            map(_ => _tokens.getClaim < string[], string[] > ('domains', []))
         );
 
         this.iss = this.user.pipe(
