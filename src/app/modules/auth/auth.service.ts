@@ -16,7 +16,9 @@ import {
     BehaviorSubject,
 } from 'rxjs';
 import {
-    map
+    filter,
+    map,
+    tap
 } from 'rxjs/operators';
 
 import {
@@ -106,7 +108,7 @@ export class AuthService {
      * @param left Position of the left corners. If it is a negative
      *             number it centres the login window on the screen.
      */
-    public openLoginWindow(loginOptions?: LoginOptions, width = 650, height = 1000, left = -1, top = -1) {
+    public openLoginWindow(options?: LoginOptions, width = 650, height = 1000, left = -1, top = -1) {
         if (left < 0) {
             const screenWidth = screen.width;
             if (screenWidth > width) {
@@ -136,7 +138,7 @@ export class AuthService {
             'toolbar=no'
         ];
 
-        const loginWindow = window.open(this.getSSOURL(loginOptions), 'Sign in to Elixir', windowOptions.join(','));
+        const loginWindow = window.open(this.getSSOURL(options), 'Sign in to Elixir', windowOptions.join(','));
         if (loginWindow) {
             loginWindow.focus();
         }
@@ -147,9 +149,9 @@ export class AuthService {
      * since version 1.0.0-beta.5.
      * windowOpen will be deleted in version 1.0.0
      */
-    public windowOpen(loginOptions?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
+    public windowOpen(options?: LoginOptions, width = 650, height = 1000, top = -1, left = -1) {
         this._deprecationWarning('windowOpen', 'openLoginWindow');
-        this.openLoginWindow(loginOptions, width, height, left, top);
+        this.openLoginWindow(options, width, height, left, top);
     }
 
     /**
@@ -160,8 +162,8 @@ export class AuthService {
      *
      * @param loginOptions Options passed as URL parameters to the SSO.
      */
-    public openLoginTab(loginOptions?: LoginOptions) {
-        const loginWindow = window.open(this.getSSOURL(loginOptions), 'Sign in to Elixir');
+    public openLoginTab(options?: LoginOptions) {
+        const loginWindow = window.open(this.getSSOURL(options), 'Sign in to Elixir');
         if (loginWindow) {
             loginWindow.focus();
         }
@@ -172,9 +174,9 @@ export class AuthService {
      * since version 1.0.0-beta.5.
      * tabOpen will be deleted in version 1.0.0
      */
-    public tabOpen(loginOptions?: LoginOptions) {
+    public tabOpen(options?: LoginOptions) {
         this._deprecationWarning('tabOpen', 'openLoginTab');
-        this.openLoginTab(loginOptions);
+        this.openLoginTab(options);
     }
 
     /**
@@ -191,14 +193,11 @@ export class AuthService {
      *
      */
     public getSSOURL(options?: LoginOptions): string {
-        let extra = '';
-        if (options) {
-            this._filterLoginOptions(options);
-            extra = Object.keys(options)
-                .map(key => [key, options[key]])
-                .reduce((accumulator, keyvalue) => `${accumulator}&${keyvalue[0]}=${keyvalue[1]}`, '');
-        }
-        return `${this._appURL}/sso?from=${this._domain}${extra}`;
+        const fragments = this._formatFragments({
+            'from': this._domain,
+            ...options
+        });
+        return `${this._appURL}/sso${fragments}`;
     }
 
     /**
@@ -218,30 +217,25 @@ export class AuthService {
     /**
      * Create AAP account
      *
-     * @returns uid of the new user when account is successfully created otherwise null
+     * @returns uid of the new user
      */
     public createAAPaccount(newUser: {
-        name: string,
+        name?: string,
         username: string,
         password: string,
-        email: string,
-        organization: string
-    }): Observable < string | null > {
+        email?: string,
+        organization?: string
+    }): Observable < string > {
         return this._http.post(this._authURL, newUser, {
-            observe: 'response',
             responseType: 'text'
-        }).pipe(
-            map(response => {
-                if (response.status === 200 && response.body) {
-                    return response.body;
-                }
-                return null;
-            })
-        );
+        });
     }
 
     /**
      * Login directly through the AAP
+     *
+     * See method _filterLoginOptions regarding security risks of certain
+     * LoginOptions.
      *
      * @returns true if the user successfully login, otherwise false
      */
@@ -249,32 +243,29 @@ export class AuthService {
         user: {
             username: string,
             password: string,
-        }
+        }, options?: LoginOptions
     ): Observable < boolean > {
-        return this._http.get(this._authURL, {
-            observe: 'response',
+        const fragments = this._formatFragments(options);
+        return this._http.get(`${this._authURL}${fragments}`, {
             headers: this._createAuthHeader(user),
             responseType: 'text'
         }).pipe(
-            map(response => {
-                if (response.status === 200 && response.body) {
-                    this._storageRemover();
-                    this._storageUpdater(response.body);
-                    this._updateUser();
+            tap(token => {
+                this._storageRemover();
+                this._storageUpdater(token);
+                this._updateUser();
 
-                    // Triggers updating other windows
-                    this._commKeyUpdater();
-                    return true;
-                }
-                return false;
-            })
+                // Triggers updating other windows
+                this._commKeyUpdater();
+            }),
+            map(Boolean),
         );
     }
 
     /**
      * Change password AAP account
      *
-     * @returns uid of the new user when account is successfully created otherwise null
+     * @returns true when password is successfully changed
      */
     public changePasswordAAP({
         username,
@@ -289,18 +280,12 @@ export class AuthService {
             username,
             password: newPassword
         }, {
-            observe: 'response',
             headers: this._createAuthHeader({
                 username,
                 password: oldPassword
             })
         }).pipe(
-            map(response => {
-                if (response.status === 200) {
-                    return true;
-                }
-                return false;
-            })
+            map(response => true) // response is empty, but if it reaches this point the request has successfully completed
         );
     }
 
@@ -357,22 +342,35 @@ export class AuthService {
      */
     public refresh(): Observable < boolean > {
         return this._http.get(this._tokenURL, {
-            observe: 'response',
             responseType: 'text'
         }).pipe(
-            map(response => {
-                if (response.status === 200 && response.body) {
-                    this._storageRemover();
-                    this._storageUpdater(response.body);
-                    this._updateUser(false);
+            tap(token => {
+                this._storageRemover();
+                this._storageUpdater(token);
+                this._updateUser(false);
 
-                    // Triggers updating other windows
-                    this._commKeyUpdater();
-                    return true;
-                }
-                return false;
-            })
+                // Triggers updating other windows
+                this._commKeyUpdater();
+            }),
+            map(Boolean)
         );
+    }
+
+    /**
+     * Format and filter fragment options
+     *
+     * @params options
+     *
+     * @returns fragment string
+     */
+    private _formatFragments(options?: LoginOptions) {
+        if (options) {
+            this._filterLoginOptions(options);
+            return '?' + Object.entries(options)
+                .map(([key, value]) => `${key}=${value}`).join('&');
+        }
+
+        return '';
     }
 
     /**
@@ -396,10 +394,9 @@ export class AuthService {
             const softLimit = 60;
             const hardLimit = 60 * 24;
             if (ttl > hardLimit) {
-                window.console.error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`);
-                window.console.error(`Expiration request reset to ${hardLimit} minutes.`);
-                options['ttl'] = '' + hardLimit;
-            } else if (ttl > softLimit) {
+                throw (new Error(`Login requested with an expiration longer than ${hardLimit} minutes! This is not allowed.`));
+            }
+            if (ttl > softLimit) {
                 window.console.warn(`Login requested with an expiration longer than ${softLimit} minutes!`);
             }
         }
@@ -490,7 +487,7 @@ export class AuthService {
             });
 
             if (invokeLoginCallbacks) {
-                this._loginCallbacks.map(callback => callback && callback());
+                this._loginCallbacks.forEach(callback => callback());
             }
 
             // Schedule future logout event base on token expiration
@@ -501,7 +498,7 @@ export class AuthService {
         } else {
             this._storageRemover(); // Cleanup possible left behind token
             this._user.next(null);
-            this._logoutCallbacks.map(callback => callback && callback());
+            this._logoutCallbacks.forEach(callback => callback());
         }
     }
 
@@ -513,4 +510,3 @@ export class AuthService {
         window.console.warn(`Method '${oldMethod}' has been deprecated, please use '${newMethod}' method instead`);
     }
 }
-

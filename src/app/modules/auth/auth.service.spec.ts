@@ -25,9 +25,14 @@ import {
 } from '@auth0/angular-jwt';
 import {
     CommonTestingModule,
+    getToken,
     updateToken,
     removeToken,
+    tokenName
 } from 'testing/common';
+import {
+    AuthModule
+} from './auth.module';
 import {
     VALID_TOKEN_1,
     VALID_TOKEN_2,
@@ -99,12 +104,10 @@ describe('AuthService', () => {
                     AuthService,
                 ]
             });
-        });
 
-        beforeEach(inject([AuthService], (serv: AuthService) => {
-            service = serv;
+            service = TestBed.get(AuthService);
             service.user().subscribe(state => user = state);
-        }));
+        });
 
         it('must be created', () => {
             expect(service).toBeTruthy();
@@ -122,7 +125,8 @@ describe('AuthService', () => {
         });
 
         it('must execute openLoginWindow', () => {
-            const open = spyOn(window, 'open');
+            const open = spyOn(window, 'open').and.returnValue(window);
+            const focus = spyOn(window, 'focus');
 
             let left, top, width, height = 0;
 
@@ -140,6 +144,7 @@ describe('AuthService', () => {
                 // tslint:disable-next-line:max-line-length
                 `width=${width},height=${height},left=${left},top=${top},personalbar=no,toolbar=no,scrollbars=yes,resizable=yes,directories=no,location=no,menubar=no,titlebar=no,toolbar=no`
             );
+            expect(focus).toHaveBeenCalled();
 
             service.openLoginWindow({}, 50000000, 100000000);
             expect(open).toHaveBeenCalledWith(
@@ -196,8 +201,23 @@ describe('AuthService', () => {
             );
         });
 
+        it('must execute windowOpen', () => {
+            const open = spyOn(service, 'openLoginWindow');
+
+            service.windowOpen({
+                a: 'a',
+                b: 'b'
+            }, 1, 2, 3, 4);
+
+            expect(open).toHaveBeenCalledWith({
+                a: 'a',
+                b: 'b'
+            }, 1, 2, 4, 3); // Inverted order of last two arguments
+        });
+
         it('must execute openLoginTab', () => {
-            const open = spyOn(window, 'open');
+            const open = spyOn(window, 'open').and.returnValue(window);
+            const focus = spyOn(window, 'focus');
 
             service.openLoginTab();
             expect(open).toHaveBeenCalledWith(
@@ -213,6 +233,20 @@ describe('AuthService', () => {
                 `${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&a=a&b=b`,
                 'Sign in to Elixir',
             );
+            expect(focus).toHaveBeenCalled();
+        });
+
+        it('must execute tabOpen', () => {
+            const open = spyOn(service, 'openLoginTab');
+
+            service.tabOpen({
+                a: 'a',
+                b: 'b'
+            });
+            expect(open).toHaveBeenCalledWith({
+                a: 'a',
+                b: 'b'
+            });
         });
 
         it('must create valid single-sign-on URL', () => {
@@ -223,12 +257,32 @@ describe('AuthService', () => {
                 .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=30&o=3`);
         });
 
-        it('must limit the single-sign-on time-to-live argument to 1440 seconds', () => {
+        it('must limit the single-sign-on time-to-live argument longer than permitted', () => {
+            expect(() => {
+                    service.getSSOURL({
+                        'ttl': '' + ((60 * 24) + 1),
+                        'o': '3'
+                    });
+                })
+                .toThrow();
+        });
+
+        it('must limit the single-sign-on time-to-live argument longer than the soft limit', () => {
+            const warn = spyOn(window.console, 'warn');
+            expect(service.getSSOURL())
+                .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`);
+            expect(warn).not.toHaveBeenCalled();
+
+            expect(service.getSSOURL({}))
+                .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`);
+            expect(warn).not.toHaveBeenCalled();
+
             expect(service.getSSOURL({
-                    'ttl': '1441',
+                    'ttl': '' + (60 + 1),
                     'o': '3'
                 }))
-                .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=1440&o=3`);
+                .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=61&o=3`);
+            expect(warn).toHaveBeenCalled();
         });
     });
 
@@ -248,18 +302,212 @@ describe('AuthService', () => {
             });
 
             httpController = TestBed.get(HttpTestingController);
+
+            service = TestBed.get(AuthService);
+            service.user().subscribe(state => user = state);
+            messageCheck = spyOn((service as any), '_messageIsAcceptable');
+            keyName = (service as any)._commKeyName;
         });
 
         afterEach(() => {
             httpController.verify();
         });
 
-        beforeEach(inject([AuthService], (serv: AuthService) => {
-            service = serv;
-            service.user().subscribe(state => user = state);
-            messageCheck = spyOn((service as any), '_messageIsAcceptable');
-            keyName = (service as any)._commKeyName;
-        }));
+        it('must create AAP account', () => {
+            service.createAAPaccount({
+                username: 'username',
+                password: 'password'
+            }).subscribe(success => expect(success).toBe('usr-new'));
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        !request.headers.has('Authorization');
+                }
+            );
+
+            req.flush('usr-new', {
+                status: 200,
+                statusText: 'OK'
+            });
+
+            expect(req.request.method).toBe('POST');
+        });
+
+        it('must fail to create AAP account', () => {
+            service.createAAPaccount({
+                username: 'username',
+                password: 'password'
+            }).subscribe({
+                error: error => expect(error).toBeTruthy()
+            });
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        !request.headers.has('Authorization');
+                }
+            );
+
+            req.flush('deliberated error', {
+                status: 500,
+                statusText: 'Not cool'
+            });
+
+            expect(req.request.method).toBe('POST');
+        });
+
+        it('must login into AAP', () => {
+            service.logOut();
+            expect(user).toBeNull('user must not be authenticated at this point');
+
+            let loginHasExecuted = false;
+            let logoutHasExecuted = false;
+
+            service.addLogInEventListener(() => loginHasExecuted = true);
+            service.addLogOutEventListener(() => logoutHasExecuted = true);
+
+            service.loginAAP({
+                username: 'username',
+                password: 'password'
+            }).subscribe(success => {
+                expect(success).toBe(true);
+                expect(loginHasExecuted).toBe(true);
+                expect(user).toEqual({
+                    uid: 'usr-1',
+                    name: 'Ed Munden Gras',
+                    nickname: '1',
+                    email: 'test@ebi.ac.uk',
+                    token: VALID_TOKEN_1
+                }, 'user must have correct details');
+            });
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        !!(request.headers.get('Authorization') as string).match(/Basic .+/);
+                }
+            );
+
+            req.flush(VALID_TOKEN_1);
+
+            expect(req.request.method).toBe('GET');
+
+            service.logOut();
+            expect(user).toBeNull();
+            expect(logoutHasExecuted).toBe(true);
+        });
+
+        it('must login into AAP (with options)', () => {
+            service.logOut();
+            expect(user).toBeNull('user must not be authenticated at this point');
+
+            let loginHasExecuted = false;
+            let logoutHasExecuted = false;
+
+            service.addLogInEventListener(() => loginHasExecuted = true);
+            service.addLogOutEventListener(() => logoutHasExecuted = true);
+
+            service.loginAAP({
+                username: 'username',
+                password: 'password'
+            }, {ttl: '5', o: '6'}).subscribe(success => {
+                expect(success).toBe(true);
+                expect(loginHasExecuted).toBe(true);
+                expect(user).toEqual({
+                    uid: 'usr-1',
+                    name: 'Ed Munden Gras',
+                    nickname: '1',
+                    email: 'test@ebi.ac.uk',
+                    token: VALID_TOKEN_1
+                }, 'user must have correct details');
+            });
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}?ttl=5&o=6` &&
+                        !!(request.headers.get('Authorization') as string).match(/Basic .+/);
+                }
+            );
+
+            req.flush(VALID_TOKEN_1);
+
+            expect(req.request.method).toBe('GET');
+
+            service.logOut();
+            expect(user).toBeNull();
+            expect(logoutHasExecuted).toBe(true);
+        });
+
+        it('must fail login into AAP', () => {
+            service.loginAAP({
+                username: 'username',
+                password: 'password'
+            }).subscribe({
+                error: error => expect(error).toBeTruthy()
+            });
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        request.headers.has('Authorization');
+                }
+            );
+
+            req.flush(VALID_TOKEN_1, {
+                status: 500,
+                statusText: 'Not cool'
+            });
+
+            expect(req.request.method).toBe('GET');
+            expect(user).toBeNull();
+        });
+
+        it('must change AAP password', () => {
+            service.changePasswordAAP({
+                username: 'username',
+                oldPassword: 'oldPassword',
+                newPassword: 'newPassword'
+            }).subscribe(success => expect(success).toBe(true));
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        request.headers.has('Authorization');
+                }
+            );
+
+            req.flush('', {
+                status: 200,
+                statusText: 'OK'
+            });
+
+            expect(req.request.method).toBe('PATCH');
+        });
+
+        it('must fail to change AAP password', () => {
+            service.changePasswordAAP({
+                username: 'username',
+                oldPassword: 'oldPassword',
+                newPassword: 'newPassword'
+            }).subscribe({
+                error: error => expect(error).toBeTruthy()
+            });
+
+            const req = httpController.expectOne(
+                request => {
+                    return request.url === `${(service as any)._authURL}` &&
+                        request.headers.has('Authorization');
+                }
+            );
+
+            req.flush('', {
+                status: 401,
+                statusText: 'Not authorized'
+            });
+
+            expect(req.request.method).toBe('PATCH');
+        });
 
         it('must be able to login (through private _updateUser method) and logout', () => {
             service.logOut();
@@ -314,6 +562,7 @@ describe('AuthService', () => {
             const timeStamp_3 = +(localStorage.getItem(keyName) as string);
             expect(timeStamp_2).toBeLessThan(timeStamp_3);
             expect(user).toBeNull('user must not be authenticated at this point');
+            expect(localStorage.hasOwnProperty(tokenName)).toBe(false);
 
             tick(1);
             service.logOut();
@@ -347,7 +596,7 @@ describe('AuthService', () => {
             service.logOut();
         });
 
-        it('must be able call logout events', () => {
+        it('must be able call logout events (via logout method)', () => {
             messageCheck.and.returnValue(true);
             let hasExecuted = false;
 
@@ -372,9 +621,39 @@ describe('AuthService', () => {
             expect(hasExecuted).toBe(false);
             service.logOut();
             expect(hasExecuted).toBe(true);
+            expect(localStorage.hasOwnProperty(tokenName)).toBe(false);
         });
 
+        it('must be able call logout events (via timeOut)', fakeAsync(() => {
+            messageCheck.and.returnValue(true);
+            let hasExecuted = false;
+
+            service.logOut();
+            expect(user).toBeNull('user must not be authenticated at this point');
+            expect(hasExecuted).toBe(false);
+            service.addLogOutEventListener(() => hasExecuted = true);
+
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_1
+            }));
+
+            expect(user).not.toBeNull('user must be authenticated at this point');
+            expect(user).toEqual({
+                uid: 'usr-1',
+                name: 'Ed Munden Gras',
+                nickname: '1',
+                email: 'test@ebi.ac.uk',
+                token: VALID_TOKEN_1
+            }, 'user must have correct details');
+
+            expect(hasExecuted).toBe(false);
+            tick(1000000000000000000000);
+            expect(hasExecuted).toBe(true);
+            expect(localStorage.hasOwnProperty(tokenName)).toBe(false);
+        }));
+
         it('must authenticate only after login from correct window source', () => {
+            const close = spyOn(window, 'close');
             service.logOut();
             expect(user).toBeNull('user must not be authenticated at this point');
 
@@ -389,7 +668,8 @@ describe('AuthService', () => {
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1,
-                origin: (service as any)._appURL
+                origin: (service as any)._appURL,
+                source: window,
             }));
 
             expect(user).not.toBeNull('user must be authenticated at this point');
@@ -400,6 +680,7 @@ describe('AuthService', () => {
                 email: 'test@ebi.ac.uk',
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
+            expect(close).toHaveBeenCalled();
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: EXPIRED_TOKEN_1,
@@ -486,17 +767,17 @@ describe('AuthService', () => {
 
             const req = httpController.expectOne(
                 request => {
-                    return request.url === `${(service as any)._appURL}/token` &&
+                    return request.url === `${(service as any)._tokenURL}` &&
                         request.headers.get('Authorization') === `Bearer ${VALID_TOKEN_1}`;
-
                 }
             );
 
-            expect(req.request.method).toBe('GET');
             req.flush(VALID_TOKEN_2, {
                 status: 200,
                 statusText: 'OK'
             });
+
+            expect(req.request.method).toBe('GET');
 
             service.logOut();
         });
@@ -533,19 +814,88 @@ describe('AuthService', () => {
 
             const req = httpController.expectOne(
                 request => {
-                    return request.url === `${(service as any)._appURL}/token` &&
+                    return request.url === `${(service as any)._tokenURL}` &&
                         request.headers.get('Authorization') === `Bearer ${VALID_TOKEN_1}`;
                 }
             );
 
-            expect(req.request.method).toBe('GET');
             req.flush('deliberated 403', {
                 status: 403,
                 statusText: 'Forbidden'
             });
 
+            expect(req.request.method).toBe('GET');
+
             service.logOut();
         });
     });
-});
 
+    describe('without tokenRemover function', () => {
+
+        let service: AuthService;
+        let httpController: HttpTestingController;
+        let keyName: string;
+        let messageCheck: jasmine.Spy;
+        let user: User | null = null;
+
+        beforeEach(() => {
+            TestBed.configureTestingModule({
+                imports: [
+                    AuthModule.forRoot({
+                        aapURL: 'https://blah.com',
+                        tokenGetter: getToken,
+                        tokenUpdater: updateToken,
+                    }),
+                    CommonTestingModule
+                ],
+            });
+
+            httpController = TestBed.get(HttpTestingController);
+
+            service = TestBed.get(AuthService);
+            service.user().subscribe(state => user = state);
+            messageCheck = spyOn((service as any), '_messageIsAcceptable');
+            keyName = (service as any)._commKeyName;
+        });
+
+        afterEach(() => {
+            httpController.verify();
+        });
+
+
+        it('it must set the local storage to null', fakeAsync(() => {
+            messageCheck.and.returnValue(true);
+
+            service.logOut();
+            const timeStamp_1 = +(localStorage.getItem(keyName) as string);
+            expect(user).toBeNull('user must not be authenticated at this point');
+
+            // service.tabOpen(); // TODO
+
+            tick(1);
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_1
+            }));
+            expect(messageCheck).toHaveBeenCalled();
+            const timeStamp_2 = +(localStorage.getItem(keyName) as string);
+            expect(timeStamp_1).toBeLessThan(timeStamp_2);
+
+            expect(user).not.toBeNull('user must be authenticated at this point');
+            expect(user).toEqual({
+                uid: 'usr-1',
+                name: 'Ed Munden Gras',
+                nickname: '1',
+                email: 'test@ebi.ac.uk',
+                token: VALID_TOKEN_1
+            }, 'user must have correct details');
+
+            tick(1);
+            service.logOut();
+            expect(user).toBeNull('user must not be authenticated at this point');
+            const timeStamp_3 = +(localStorage.getItem(keyName) as string);
+            expect(timeStamp_2).toBeLessThan(timeStamp_3);
+            expect(localStorage.hasOwnProperty(tokenName)).toBe(true);
+        }));
+
+    });
+});

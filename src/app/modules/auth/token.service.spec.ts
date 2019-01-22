@@ -39,11 +39,11 @@ describe('TokenService', () => {
         });
 
         it('getToken should return valid token', () => {
-            expect(service.getToken()).toEqual(VALID_TOKEN_1);
+            expect(service.getToken()).toBe(VALID_TOKEN_1);
         });
 
         it('token should be valid', () => {
-            expect(service.isTokenValid()).toEqual(true);
+            expect(service.isTokenValid()).toBe(true);
         });
 
         it('token should have correct expired date', () => {
@@ -51,19 +51,19 @@ describe('TokenService', () => {
         });
 
         it('getClaim should return correct value', () => {
-            expect(service.getClaim('iss', 'Dummy')).toEqual('https://aai.ebi.ac.uk/sp');
+            expect(service.getClaim('iss', 'Dummy')).toBe('https://aai.ebi.ac.uk/sp');
         });
 
         it('getClaim should with non-existing claim should return default value "Dummy"', () => {
-            expect(service.getClaim('issr', 'Dummy')).toEqual('Dummy');
+            expect(service.getClaim('issr', 'Dummy')).toBe('Dummy');
         });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
     });
 
@@ -88,11 +88,11 @@ describe('TokenService', () => {
         });
 
         it('getToken should return expired token', () => {
-            expect(service.getToken()).toEqual(EXPIRED_TOKEN_1);
+            expect(service.getToken()).toBe(EXPIRED_TOKEN_1);
         });
 
         it('token should not be valid', () => {
-            expect(service.isTokenValid()).toEqual(false);
+            expect(service.isTokenValid()).toBe(false);
         });
 
         it('token should have correct expired date', () => {
@@ -100,20 +100,20 @@ describe('TokenService', () => {
         });
 
         it('getClaim should return correct value', () => {
-            expect(service.getClaim('iss', 'Dummy')).toEqual('https://aai.ebi.ac.uk/sp');
+            expect(service.getClaim('iss', 'Dummy')).toBe('https://aai.ebi.ac.uk/sp');
         });
 
         it('getClaim should with non-existing claim should return default value "Dummy"',
             () => {
-                expect(service.getClaim('issr', 'Dummy')).toEqual('Dummy');
+                expect(service.getClaim('issr', 'Dummy')).toBe('Dummy');
             });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
     });
 
@@ -139,32 +139,32 @@ describe('TokenService', () => {
         });
 
         it('getToken should return expired token', () => {
-            expect(service.getToken()).toEqual(malformedToken);
+            expect(service.getToken()).toBe(malformedToken);
         });
 
         it('token should not be valid', () => {
-            expect(service.isTokenValid()).toEqual(false);
+            expect(service.isTokenValid()).toBe(false);
         });
 
         it('token should have correct expired date', () => {
-            expect(service.getTokenExpirationDate()).toEqual(null);
+            expect(service.getTokenExpirationDate()).toBeNull();
         });
 
         it('getClaim should return correct value', () => {
-            expect(service.getClaim('iss', 'Dummy')).toEqual('Dummy');
+            expect(service.getClaim('iss', 'Dummy')).toBe('Dummy');
         });
 
         it('getClaim should with non-existing claim should return default value "Dummy"',
             () => {
-                expect(service.getClaim('issr', 'Dummy')).toEqual('Dummy');
+                expect(service.getClaim('issr', 'Dummy')).toBe('Dummy');
             });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
 
         it('getClaim should with non-existing claim should return default value null', () => {
-            expect(service.getClaim('issr', null)).toEqual(null);
+            expect(service.getClaim('issr', null)).toBeNull();
         });
     });
 });

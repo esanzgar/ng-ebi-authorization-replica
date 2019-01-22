@@ -194,6 +194,8 @@ export function removeToken(): void {
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
+                whitelistedDomains: ['api.aai.ebi.ac.uk'], // Necessary for creating domains
+                blacklistedRoutes: ['https://api.aai.ebi.ac.uk/auth'] // Necessary for login via AAP local account (instead of ELIXIR)
             }
         })
     ],

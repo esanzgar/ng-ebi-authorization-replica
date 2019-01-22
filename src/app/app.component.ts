@@ -64,7 +64,7 @@ export class AppComponent implements OnInit {
     // * add custom sync validator for username
     createAAP = this._fb.group({
         name: ['', {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.minLength(5), Validators.maxLength(255)]
         }],
         username: ['', {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
@@ -73,7 +73,7 @@ export class AppComponent implements OnInit {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
         email: ['', {
-            validators: [Validators.required, Validators.email, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.email, Validators.minLength(5), Validators.maxLength(255)]
         }],
         organization: ['', {
             validators: [Validators.maxLength(255)]

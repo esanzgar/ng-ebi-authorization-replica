@@ -16,16 +16,16 @@ import {
     AuthModule
 } from 'src/app/modules/auth/auth.module';
 
-export const jwt_token = 'test';
+export const tokenName = 'jwt_token';
 export function getToken(): string {
-    return localStorage.getItem('jwt_token') || '';
+    return localStorage.getItem(tokenName) || '';
 }
 export function updateToken(newToken: string): void {
-    return localStorage.setItem('jwt_token', newToken);
+    return localStorage.setItem(tokenName, newToken);
 }
 // Optional
 export function removeToken(): void {
-    return localStorage.removeItem('jwt_token');
+    return localStorage.removeItem(tokenName);
 }
 @NgModule({
     imports: [
@@ -40,7 +40,8 @@ export function removeToken(): void {
         JwtModule.forRoot({
             config: {
                 tokenGetter: getToken,
-                whitelistedDomains: ['blah.com']
+                whitelistedDomains: ['blah.com'],
+                blacklistedRoutes: ['https://blah.com/auth']
             }
         }),
     ],
