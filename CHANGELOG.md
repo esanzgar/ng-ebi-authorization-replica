@@ -1,3 +1,13 @@
+<a name="1.0.0-beta.5"></a>
+# [1.0.0-beta.5](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.4...1.0.0-beta.5) (2019-01-23)
+
+### Features
+* added refresh token functionality.
+* added functionality to remove listeners.
+* marked windowOpen and tabOpen deprecated. Use instead, openLoginWindow,
+  openLoginTab.
+* added methods to work with local AAP accounts: create, login and change password to AAP account.
+
 <a name="1.0.0-beta.4"></a>
 # [1.0.0-beta.4](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.3...1.0.0-beta.4) (2018-10-23)
 
@@ -70,8 +80,8 @@
 
 ### Features
 
-* **auth:** allow inter-window communication (changes in the JWT token are listened by other opened windows) ([#1](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/issues/1) ([9a13795](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commit/9a13795)), closes [#1](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/issues/1
-* **auth:** remove expired JWT token (when users leave before the token is removed and then come back) ([#1](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/issues/1) ([2e59603](https://gitlab.ebi.ac.uk/tools-glue/angular-aap-auth/commit/2e59603))
+* **auth:** allow inter-window communication (changes in the JWT token are listened by other opened windows) ([9a13795](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/commit/9a13795)), closes [#1](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/issues/1)
+* **auth:** remove expired JWT token (when users leave before the token is removed and then come back) ([2e59603](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/commit/2e59603))
 * **conf:** make tokenRemover an optional function in the configuration. When
     not supplied, the JWT token is set to null.
 
