@@ -1,6 +1,7 @@
 import {
     Injectable,
     Inject,
+    OnDestroy,
     RendererFactory2,
     Renderer2
 } from '@angular/core';
@@ -42,12 +43,15 @@ export interface User {
 }
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnDestroy {
 
     private _user = new BehaviorSubject < User | null > (null);
 
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
+
+    private _unlistenLoginMessage: Function;
+    private _unlistenChangesFromOtherWindows: Function;
 
     private _timeoutID: number | null = null;
 
@@ -84,10 +88,15 @@ export class AuthService {
         }
 
         const renderer = this._rendererFactory.createRenderer(null, null);
-        this._listenLoginMessage(renderer);
-        this._listenChangesFromOtherWindows(renderer);
+        this._unlistenLoginMessage = this._listenLoginMessage(renderer);
+        this._unlistenChangesFromOtherWindows = this._listenChangesFromOtherWindows(renderer);
 
         this._updateUser(); // TODO: experiment with setTimeOut
+    }
+
+    public ngOnDestroy() {
+        this._unlistenLoginMessage();
+        this._unlistenChangesFromOtherWindows();
     }
 
     public user(): Observable < User | null > {
@@ -427,8 +436,8 @@ export class AuthService {
      * These messages contain the tokens from the AAP.
      * If a token is received then the callbacks are triggered.
      */
-    private _listenLoginMessage(renderer: Renderer2) {
-        renderer.listen('window', 'message', (event: MessageEvent) => {
+    private _listenLoginMessage(renderer: Renderer2): Function {
+        return renderer.listen('window', 'message', (event: MessageEvent) => {
             if (!this._messageIsAcceptable(event)) {
                 return;
             }
@@ -456,8 +465,8 @@ export class AuthService {
      * Notice that changes in the '_commKeyName' produced by this class doesn't
      * trigger this event.
      */
-    private _listenChangesFromOtherWindows(renderer: Renderer2) {
-        renderer.listen('window', 'storage', (event: StorageEvent) => {
+    private _listenChangesFromOtherWindows(renderer: Renderer2): Function {
+        return renderer.listen('window', 'storage', (event: StorageEvent) => {
             if (event.key === this._commKeyName) {
                 this._updateUser();
             }

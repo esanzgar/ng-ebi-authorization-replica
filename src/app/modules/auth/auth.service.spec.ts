@@ -9,6 +9,9 @@ import {
     HttpTestingController
 } from '@angular/common/http/testing';
 import {
+    Subscription
+} from 'rxjs';
+import {
     tap
 } from 'rxjs/operators';
 
@@ -46,6 +49,9 @@ import {
 describe('AuthService', () => {
 
     describe('with an expired token', () => {
+        let service: AuthService;
+        let user: User | null = null;
+        let userSubscription: Subscription;
 
         beforeEach(() => {
             TestBed.configureTestingModule({
@@ -67,15 +73,24 @@ describe('AuthService', () => {
                     AuthService
                 ]
             });
+
+            service = TestBed.get(AuthService);
+            userSubscription = service.user().subscribe(state => user = state);
         });
 
-        it('must be created', inject([AuthService], (service: AuthService) => {
-            expect(service).toBeTruthy();
-        }));
+        afterEach(() => {
+            userSubscription.unsubscribe();
+            service.logOut();
+            service.ngOnDestroy();
+        });
 
-        it('must provide null instead of a user', inject([AuthService], (service: AuthService) => {
-            service.user().subscribe(user => expect(user).toBeNull());
-        }));
+        it('must be created', () => {
+            expect(service).toBeTruthy();
+        });
+
+        it('user must be null', () => {
+            expect(user).toBeNull('user must not be authenticated at this point');
+        });
 
     });
 
@@ -83,6 +98,7 @@ describe('AuthService', () => {
 
         let service: AuthService;
         let user: User | null = null;
+        let userSubscription: Subscription;
 
         beforeEach(() => {
             TestBed.configureTestingModule({
@@ -106,7 +122,13 @@ describe('AuthService', () => {
             });
 
             service = TestBed.get(AuthService);
-            service.user().subscribe(state => user = state);
+            userSubscription = service.user().subscribe(state => user = state);
+        });
+
+        afterEach(() => {
+            userSubscription.unsubscribe();
+            service.logOut();
+            service.ngOnDestroy();
         });
 
         it('must be created', () => {
@@ -122,6 +144,40 @@ describe('AuthService', () => {
                 token: VALID_TOKEN_1
             });
             expect((service as any)._timeoutID).toBeGreaterThan(0);
+        });
+
+    });
+
+    describe('with dynamic login/logout', () => {
+
+        let service: AuthService;
+        let httpController: HttpTestingController;
+        let keyName: string;
+        let messageCheck: jasmine.Spy;
+        let user: User | null = null;
+        let userSubscription: Subscription;
+
+        beforeEach(() => {
+            TestBed.configureTestingModule({
+                imports: [
+                    CommonTestingModule
+                ],
+            });
+
+            httpController = TestBed.get(HttpTestingController);
+
+            service = TestBed.get(AuthService);
+            userSubscription = service.user().subscribe(state => user = state);
+            messageCheck = spyOn((service as any), '_messageIsAcceptable').and.returnValue(true);
+            keyName = (service as any)._commKeyName;
+            expect(user).toBeNull('user must not be authenticated at this point');
+        });
+
+        afterEach(() => {
+            httpController.verify();
+            userSubscription.unsubscribe();
+            service.logOut();
+            service.ngOnDestroy();
         });
 
         it('must execute openLoginWindow', () => {
@@ -144,7 +200,7 @@ describe('AuthService', () => {
                 // tslint:disable-next-line:max-line-length
                 `width=${width},height=${height},left=${left},top=${top},personalbar=no,toolbar=no,scrollbars=yes,resizable=yes,directories=no,location=no,menubar=no,titlebar=no,toolbar=no`
             );
-            expect(focus).toHaveBeenCalled();
+            expect(focus).toHaveBeenCalledTimes(1);
 
             service.openLoginWindow({}, 50000000, 100000000);
             expect(open).toHaveBeenCalledWith(
@@ -233,7 +289,7 @@ describe('AuthService', () => {
                 `${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&a=a&b=b`,
                 'Sign in to Elixir',
             );
-            expect(focus).toHaveBeenCalled();
+            expect(focus).toHaveBeenCalledTimes(2);
         });
 
         it('must execute tabOpen', () => {
@@ -271,46 +327,18 @@ describe('AuthService', () => {
             const warn = spyOn(window.console, 'warn');
             expect(service.getSSOURL())
                 .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`);
-            expect(warn).not.toHaveBeenCalled();
+            expect(warn).not.toHaveBeenCalledTimes(1);
 
             expect(service.getSSOURL({}))
                 .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`);
-            expect(warn).not.toHaveBeenCalled();
+            expect(warn).not.toHaveBeenCalledTimes(2);
 
             expect(service.getSSOURL({
                     'ttl': '' + (60 + 1),
                     'o': '3'
                 }))
                 .toBe(`${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876&ttl=61&o=3`);
-            expect(warn).toHaveBeenCalled();
-        });
-    });
-
-    describe('with dynamic login/logout', () => {
-
-        let service: AuthService;
-        let httpController: HttpTestingController;
-        let keyName: string;
-        let messageCheck: jasmine.Spy;
-        let user: User | null = null;
-
-        beforeEach(() => {
-            TestBed.configureTestingModule({
-                imports: [
-                    CommonTestingModule
-                ],
-            });
-
-            httpController = TestBed.get(HttpTestingController);
-
-            service = TestBed.get(AuthService);
-            service.user().subscribe(state => user = state);
-            messageCheck = spyOn((service as any), '_messageIsAcceptable');
-            keyName = (service as any)._commKeyName;
-        });
-
-        afterEach(() => {
-            httpController.verify();
+            expect(warn).not.toHaveBeenCalledTimes(3);
         });
 
         it('must create AAP account', () => {
@@ -319,12 +347,7 @@ describe('AuthService', () => {
                 password: 'password'
             }).subscribe(success => expect(success).toBe('usr-new'));
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        !request.headers.has('Authorization');
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush('usr-new', {
                 status: 200,
@@ -332,6 +355,7 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('POST');
+            expect(req.request.headers.has('Authorization')).toBe(false);
         });
 
         it('must fail to create AAP account', () => {
@@ -342,12 +366,7 @@ describe('AuthService', () => {
                 error: error => expect(error).toBeTruthy()
             });
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        !request.headers.has('Authorization');
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush('deliberated error', {
                 status: 500,
@@ -355,11 +374,10 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('POST');
+            expect(req.request.headers.has('Authorization')).toBe(false);
         });
 
         it('must login into AAP', () => {
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             let loginHasExecuted = false;
             let logoutHasExecuted = false;
@@ -382,16 +400,12 @@ describe('AuthService', () => {
                 }, 'user must have correct details');
             });
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        !!(request.headers.get('Authorization') as string).match(/Basic .+/);
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush(VALID_TOKEN_1);
 
             expect(req.request.method).toBe('GET');
+            expect(req.request.headers.get('Authorization')).toMatch(/Basic .+/);
 
             service.logOut();
             expect(user).toBeNull();
@@ -399,9 +413,6 @@ describe('AuthService', () => {
         });
 
         it('must login into AAP (with options)', () => {
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
-
             let loginHasExecuted = false;
             let logoutHasExecuted = false;
 
@@ -423,16 +434,12 @@ describe('AuthService', () => {
                 }, 'user must have correct details');
             });
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}?ttl=5&o=6` &&
-                        !!(request.headers.get('Authorization') as string).match(/Basic .+/);
-                }
-            );
+            const req = httpController.expectOne( `${(service as any)._authURL}?ttl=5&o=6`);
 
             req.flush(VALID_TOKEN_1);
 
             expect(req.request.method).toBe('GET');
+            expect(req.request.headers.get('Authorization')).toMatch(/Basic .+/);
 
             service.logOut();
             expect(user).toBeNull();
@@ -447,12 +454,7 @@ describe('AuthService', () => {
                 error: error => expect(error).toBeTruthy()
             });
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        request.headers.has('Authorization');
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush(VALID_TOKEN_1, {
                 status: 500,
@@ -460,6 +462,7 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('GET');
+            expect(req.request.headers.get('Authorization')).toMatch(/Basic .+/);
             expect(user).toBeNull();
         });
 
@@ -470,12 +473,7 @@ describe('AuthService', () => {
                 newPassword: 'newPassword'
             }).subscribe(success => expect(success).toBe(true));
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        request.headers.has('Authorization');
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush('', {
                 status: 200,
@@ -483,6 +481,7 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('PATCH');
+            expect(req.request.headers.get('Authorization')).toMatch(/Basic .+/);
         });
 
         it('must fail to change AAP password', () => {
@@ -494,12 +493,7 @@ describe('AuthService', () => {
                 error: error => expect(error).toBeTruthy()
             });
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._authURL}` &&
-                        request.headers.has('Authorization');
-                }
-            );
+            const req = httpController.expectOne((service as any)._authURL);
 
             req.flush('', {
                 status: 401,
@@ -507,12 +501,10 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('PATCH');
+            expect(req.request.headers.get('Authorization')).toMatch(/Basic .+/);
         });
 
         it('must be able to login (through private _updateUser method) and logout', () => {
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
-
             updateToken(VALID_TOKEN_1);
             (service as any)._updateUser();
 
@@ -524,17 +516,10 @@ describe('AuthService', () => {
                 email: 'test@ebi.ac.uk',
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
-
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
         });
 
         it('must be able to login (emulating message from other window) and logout', fakeAsync(() => {
-            messageCheck.and.returnValue(true);
-
-            service.logOut();
             const timeStamp_1 = +(localStorage.getItem(keyName) as string);
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             // service.tabOpen(); // TODO
 
@@ -542,7 +527,7 @@ describe('AuthService', () => {
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
             }));
-            expect(messageCheck).toHaveBeenCalled();
+            expect(messageCheck).toHaveBeenCalledTimes(1);
             const timeStamp_2 = +(localStorage.getItem(keyName) as string);
             expect(timeStamp_1).toBeLessThan(timeStamp_2);
 
@@ -572,11 +557,7 @@ describe('AuthService', () => {
         }));
 
         it('must be able call login events', () => {
-            messageCheck.and.returnValue(true);
             let hasExecuted = false;
-
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
             service.addLogInEventListener(() => hasExecuted = true);
 
             expect(hasExecuted).toBe(false);
@@ -593,15 +574,11 @@ describe('AuthService', () => {
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
             expect(hasExecuted).toBe(true);
-            service.logOut();
         });
 
         it('must be able call logout events (via logout method)', () => {
-            messageCheck.and.returnValue(true);
             let hasExecuted = false;
 
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
             expect(hasExecuted).toBe(false);
             service.addLogOutEventListener(() => hasExecuted = true);
 
@@ -625,11 +602,8 @@ describe('AuthService', () => {
         });
 
         it('must be able call logout events (via timeOut)', fakeAsync(() => {
-            messageCheck.and.returnValue(true);
             let hasExecuted = false;
 
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
             expect(hasExecuted).toBe(false);
             service.addLogOutEventListener(() => hasExecuted = true);
 
@@ -653,24 +627,26 @@ describe('AuthService', () => {
         }));
 
         it('must authenticate only after login from correct window source', () => {
+            messageCheck.and.callThrough();
             const close = spyOn(window, 'close');
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
 
+            messageCheck.calls.reset();
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
             }));
 
-            messageCheck.and.callThrough();
-            expect(messageCheck).toHaveBeenCalled();
+            expect(messageCheck).toHaveBeenCalledTimes(1);
 
             expect(user).toBeNull('user must not be authenticated at this point, incorrect window source');
 
+            messageCheck.calls.reset();
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1,
                 origin: (service as any)._appURL,
                 source: window,
             }));
+            expect(close).toHaveBeenCalledTimes(1);
+            expect(messageCheck).toHaveBeenCalledTimes(1);
 
             expect(user).not.toBeNull('user must be authenticated at this point');
             expect(user).toEqual({
@@ -680,7 +656,6 @@ describe('AuthService', () => {
                 email: 'test@ebi.ac.uk',
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
-            expect(close).toHaveBeenCalled();
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: EXPIRED_TOKEN_1,
@@ -688,13 +663,10 @@ describe('AuthService', () => {
             }));
 
             expect(user).toBeNull('user must not be authenticated at this point, incorrect window source');
-            service.logOut();
         });
 
         it('must be able login (emulating localStorage communication) and logout', fakeAsync(() => {
-            service.logOut();
             const timeStamp_1 = +(localStorage.getItem(keyName) as string);
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             tick(1);
             (service as any)._storageUpdater(VALID_TOKEN_1);
@@ -736,9 +708,7 @@ describe('AuthService', () => {
             messageCheck.and.returnValue(true);
             let hasExecuted = 0;
 
-            service.logOut();
             service.addLogInEventListener(() => ++hasExecuted);
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
@@ -765,12 +735,7 @@ describe('AuthService', () => {
                     token: VALID_TOKEN_2
                 }))).subscribe();
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._tokenURL}` &&
-                        request.headers.get('Authorization') === `Bearer ${VALID_TOKEN_1}`;
-                }
-            );
+            const req = httpController.expectOne( (service as any)._tokenURL);
 
             req.flush(VALID_TOKEN_2, {
                 status: 200,
@@ -778,14 +743,11 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('GET');
-
-            service.logOut();
+            expect(req.request.headers.get('Authorization')).toBe(`Bearer ${VALID_TOKEN_1}`);
         });
 
         it('should not refresh token', () => {
             messageCheck.and.returnValue(true);
-            service.logOut();
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
@@ -812,12 +774,7 @@ describe('AuthService', () => {
                 },
                 error => 'ignored');
 
-            const req = httpController.expectOne(
-                request => {
-                    return request.url === `${(service as any)._tokenURL}` &&
-                        request.headers.get('Authorization') === `Bearer ${VALID_TOKEN_1}`;
-                }
-            );
+            const req = httpController.expectOne( (service as any)._tokenURL);
 
             req.flush('deliberated 403', {
                 status: 403,
@@ -825,8 +782,7 @@ describe('AuthService', () => {
             });
 
             expect(req.request.method).toBe('GET');
-
-            service.logOut();
+            expect(req.request.headers.get('Authorization')).toBe(`Bearer ${VALID_TOKEN_1}`);
         });
     });
 
@@ -854,7 +810,7 @@ describe('AuthService', () => {
 
             service = TestBed.get(AuthService);
             service.user().subscribe(state => user = state);
-            messageCheck = spyOn((service as any), '_messageIsAcceptable');
+            messageCheck = spyOn((service as any), '_messageIsAcceptable').and.returnValue(true);
             keyName = (service as any)._commKeyName;
         });
 
@@ -864,11 +820,7 @@ describe('AuthService', () => {
 
 
         it('it must set the local storage to null', fakeAsync(() => {
-            messageCheck.and.returnValue(true);
-
-            service.logOut();
             const timeStamp_1 = +(localStorage.getItem(keyName) as string);
-            expect(user).toBeNull('user must not be authenticated at this point');
 
             // service.tabOpen(); // TODO
 
@@ -876,7 +828,7 @@ describe('AuthService', () => {
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
             }));
-            expect(messageCheck).toHaveBeenCalled();
+            expect(messageCheck).toHaveBeenCalledTimes(1);
             const timeStamp_2 = +(localStorage.getItem(keyName) as string);
             expect(timeStamp_1).toBeLessThan(timeStamp_2);
 

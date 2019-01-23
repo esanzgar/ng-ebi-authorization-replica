@@ -117,7 +117,7 @@ describe('TokenService', () => {
         });
     });
 
-    describe('with malformed token)', () => {
+    describe('with malformed token', () => {
         const malformedToken = 'asdfk.asdf.asdf';
         beforeEach(() => {
             TestBed.configureTestingModule({

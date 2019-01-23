@@ -1,5 +1,6 @@
 import {
     Component,
+    Inject,
     OnInit
 } from '@angular/core';
 import {
@@ -25,8 +26,9 @@ import {
 } from 'rxjs/operators';
 
 import {
-    environment
-} from 'src/environments/environment';
+    AAP_CONFIG,
+    AuthConfig
+} from 'src/app/modules/auth/auth.config';
 
 import {
     AuthService,
@@ -63,51 +65,54 @@ export class AppComponent implements OnInit {
     // * test forms
     // * add custom sync validator for username
     createAAP = this._fb.group({
-        name: ['', {
+        name: [null, {
             validators: [Validators.minLength(5), Validators.maxLength(255)]
         }],
-        username: ['', {
+        username: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        password: ['', {
+        password: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        email: ['', {
+        email: [null, {
             validators: [Validators.email, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        organization: ['', {
+        organization: [null, {
             validators: [Validators.maxLength(255)]
         }],
     });
 
     loginAAP = this._fb.group({
-        username: ['', {
+        username: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        password: ['', {
+        password: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
     });
 
     changePasswordAAP = this._fb.group({
-        username: ['', {
+        username: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        oldPassword: ['', {
+        oldPassword: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
-        newPassword: ['', {
+        newPassword: [null, {
             validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
         }],
     });
 
     domain = this._fb.group({
-        domainName: ['', Validators.required],
-        domainDesc: ['']
+        domainName: [null, {
+            validators: [Validators.required]
+        }],
+        domainDesc: [null]
     });
 
-    private readonly domainsURL = `${environment.aapURL}/domains`;
-    private readonly authURL = `${environment.aapURL}/auth`;
+    private readonly _domainsURL: string;
+    private readonly _authURL: string;
+    private readonly _managementURL: string;
 
     constructor(
         // Public for demonstration purposes
@@ -115,8 +120,13 @@ export class AppComponent implements OnInit {
         private _tokens: TokenService,
         // private _jwt: JwtHelperService,
         private _fb: FormBuilder,
-        private _http: HttpClient
+        private _http: HttpClient,
+        @Inject(AAP_CONFIG) private _config: AuthConfig
     ) {
+        this._domainsURL = `${_config.aapURL}/domains`;
+        this._authURL = `${_config.aapURL}/auth`;
+        this._managementURL = `${_config.aapURL}/my/management`;
+
         this.user$ = auth.user();
 
         this.isAuthenticated$ = this.user$.pipe(
@@ -124,13 +134,7 @@ export class AppComponent implements OnInit {
         );
 
         this.expiration$ = this.user$.pipe(
-            map(_ => {
-                try {
-                    return _tokens.getTokenExpirationDate();
-                } catch (e) {
-                    return null;
-                }
-            })
+            map(_ => _tokens.getTokenExpirationDate())
         );
 
         /* More complicate version
@@ -139,7 +143,7 @@ export class AppComponent implements OnInit {
                 const token = this._tokens.getToken();
                 try {
                     return _jwt.getTokenExpirationDate( < string > token);
-                } catch (e) {
+                } catch (error) {
                     return null;
                 }
             })
@@ -147,13 +151,7 @@ export class AppComponent implements OnInit {
          */
 
         this.domains$ = this.user$.pipe(
-            map(_ => {
-                try {
-                    return _tokens.getClaim < string[], string[] > ('domains', []);
-                } catch (e) {
-                    return [];
-                }
-            })
+            map(_ => _tokens.getClaim < string[], string[] > ('domains', []))
         );
 
         this.managedDomains$ = this.user$.pipe(
@@ -192,12 +190,7 @@ export class AppComponent implements OnInit {
         this.auth.createAAPaccount(this.createAAP.value).pipe(
             first(),
             filter(Boolean),
-            tap(_ => this.createAAP.reset({
-                name: '',
-                username: '',
-                password: '',
-                organization: ''
-            }))
+            tap(_ => this.createAAP.reset())
         ).subscribe();
     }
 
@@ -208,10 +201,7 @@ export class AppComponent implements OnInit {
         this.auth.loginAAP(this.loginAAP.value).pipe(
             first(),
             filter(Boolean),
-            tap(_ => this.createAAP.reset({
-                name: '',
-                username: '',
-            }))
+            tap(_ => this.loginAAP.reset())
         ).subscribe();
     }
 
@@ -222,11 +212,7 @@ export class AppComponent implements OnInit {
         this.auth.changePasswordAAP(this.changePasswordAAP.value).pipe(
             first(),
             filter(Boolean),
-            tap(_ => this.changePasswordAAP.reset({
-                name: '',
-                oldPassword: '',
-                newPassword: ''
-            }))
+            tap(_ => this.changePasswordAAP.reset())
         ).subscribe();
     }
 
@@ -237,30 +223,14 @@ export class AppComponent implements OnInit {
      * @param description Description of the new domain/group/team
      */
     createDomain(uid: string): void {
-        this._http.post < Domain > (this.domainsURL, this.domain.value, {
-            observe: 'response',
-        }).pipe(
+        this._http.post < Domain > (this._domainsURL, this.domain.value).pipe(
             first(),
-            map(response => {
-                if (response.status === 201 && response.body) {
-                    this.refresh();
-                    return response.body.domainReference;
-                }
-                return null;
-            }),
-            tap(_ => this.domain.reset({
-                domainName: '',
-                domainDesc: ''
-            })),
+            pluck('domainReference'),
             filter(Boolean),
-            concatMap(gid => this._http.put < Domain > (`${this.domainsURL}/${gid}/${uid}/user`, null, {
-                observe: 'response',
-            })),
-            first(),
-            map(response => {
-                this.refresh();
-                return response;
-            }),
+            tap(_ => this.refresh()),
+            tap(_ => this.domain.reset()),
+            concatMap(gid => this._http.put < Domain > (`${this._domainsURL}/${gid}/${uid}/user`, null)),
+            tap(_ => this.refresh())
         ).subscribe();
     }
 
@@ -271,7 +241,7 @@ export class AppComponent implements OnInit {
      */
     deleteDomain(gid: string): void {
         console.log(gid);
-        this._http.delete < Domain > (`${this.domainsURL}/${gid}`, ).pipe(
+        this._http.delete < Domain > (`${this._domainsURL}/${gid}`, ).pipe(
             first(),
             tap(_ => this.refresh())
         ).subscribe();
@@ -281,10 +251,9 @@ export class AppComponent implements OnInit {
      * List domains that the user manage
      */
     listManagedDomains() {
-        return this._http.get < Domain[] > (`${environment.aapURL}/my/management`).pipe(
+        return this._http.get < Domain[] > (`${this._config.aapURL}/my/management`).pipe(
             first(),
             catchError(error => of ([]))
         );
     }
 }
-

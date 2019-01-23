@@ -26,7 +26,7 @@ export class TokenService {
     public getTokenExpirationDate(): Date | null {
         try {
             return this._jwt.getTokenExpirationDate();
-        } catch (e) {
+        } catch (error) {
             return null;
         }
     }
@@ -54,7 +54,7 @@ export class TokenService {
                 return defaultValue;
             }
             return value;
-        } catch (e) {
+        } catch (error) {
             return defaultValue;
         }
     }
