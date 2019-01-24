@@ -31,9 +31,10 @@
   "bugs": {
     "url": "https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/issues"
   },
-  "dependencies": {  "tslib": "^1.9.0"
-  },
+  "dependencies": {},
   "peerDependencies": {
+    "@angular/core": ">=6 <8",
+    "@auth0/angular-jwt": "^2.1.0",
     "rxjs": ">=6 <7"
   },
   "devDependencies": {
