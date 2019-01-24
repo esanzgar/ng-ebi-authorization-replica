@@ -18,7 +18,8 @@ cache:
 
 lint:
   stage: test
-  image: node:alpine
+  image: node:10.15.0-alpine
+  # image: node:alpine # replace when node-sass@4.9.4 compiles on the latest
   tags: [docker]
   script:
     - yarn lint
@@ -36,7 +37,8 @@ test:
 
 docs:
   stage: test
-  image: node:alpine
+  image: node:10.15.0-alpine
+  # image: node:alpine # replace when node-sass@4.9.4 compiles on the latest
   tags: [docker]
   script:
     - yarn docs
@@ -46,7 +48,8 @@ docs:
 
 build:
   stage: build
-  image: node:alpine
+  image: node:10.15.0-alpine
+  # image: node:alpine # replace when node-sass@4.9.4 compiles on the latest
   tags: [docker]
   script:
     - yarn packagr
