@@ -311,4 +311,5 @@ Read up on our guidelines for [contributing][contributing].
 ## License
 
 Apache 2.0 © [EMBL - European Bioinformatics Institute](https://www.ebi.ac.uk/about/terms-of-use)
+
 [contributing]: https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/blob/master/CONTRIBUTING.md
