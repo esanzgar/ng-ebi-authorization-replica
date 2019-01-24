@@ -22,8 +22,7 @@ Compatibility table
 Angular version | ng-ebi-authorization version
 --- | ---
 >=5 <6 | <= angular-aap-auth@1.0.0-alpha.7 (deprecated)
->=6 <7 | >= angular-aap-auth@1.0.0-alpha.8 (deprecated) or ng-ebi-authorization@1.0.0-beta.1
->=7 <8 | >= ng-ebi-authorization@1.0.0-beta.4
+>=6 <8 | >= angular-aap-auth@1.0.0-alpha.8 (deprecated) or ng-ebi-authorization@1.0.0-beta.1
 
 ng-ebi-authorization is an updated version of angular-aap-auth.
 
