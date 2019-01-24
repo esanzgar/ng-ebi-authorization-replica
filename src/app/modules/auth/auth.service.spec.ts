@@ -188,7 +188,7 @@ describe('AuthService', () => {
 
             // defaults
             width = 650;
-            height = 1000;
+            height = 400;
             service.openLoginWindow();
             left = Math.round((window.screen.width - width) / 2);
             expect(left + width + left).toBe(window.screen.width);
