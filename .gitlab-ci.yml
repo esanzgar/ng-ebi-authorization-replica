@@ -35,7 +35,7 @@ test:
     paths:
       - coverage/
 
-docs:
+pages:
   stage: test
   image: node:10.15.0-alpine
   # image: node:alpine # replace when node-sass@4.9.4 compiles on the latest
@@ -46,7 +46,6 @@ docs:
     - cp -r docs/* public/
   artifacts:
     paths:
-      - docs
       - public
 
 build:
