@@ -188,12 +188,17 @@ describe('AuthService', () => {
 
             // defaults
             width = 650;
-            height = 400;
+            height = 1000;
             service.openLoginWindow();
             left = Math.round((window.screen.width - width) / 2);
-            expect(left + width + left).toBe(window.screen.width);
+            expect(left + width + left).toBe(window.screen.width, 'left should be such it "fills" the width of the screen');
             top = Math.round((window.screen.height - height) / 2);
-            expect(top + height + top).toBe(window.screen.height);
+            if (top < 0) {
+                expect(top + height + top).toBe(window.screen.height, 'top should be such it "fills" the height of the screen');
+            } else {
+                // chromium headless screen.height is 600px
+                top = -1;
+            }
             expect(open).toHaveBeenCalledWith(
                 `${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`,
                 'Sign in to Elixir',
@@ -214,9 +219,9 @@ describe('AuthService', () => {
             height = 40;
             service.openLoginWindow({}, width, height);
             left = Math.round((window.screen.width - width) / 2);
-            expect(left + width + left).toBe(window.screen.width);
+            expect(left + width + left).toBe(window.screen.width, 'left should be such it "fills" the width of the screen');
             top = Math.round((window.screen.height - height) / 2);
-            expect(top + height + top).toBe(window.screen.height);
+            expect(top + height + top).toBe(window.screen.height, 'top should be such it "fills" the height of the screen');
             expect(open).toHaveBeenCalledWith(
                 `${(service as any)._appURL}/sso?from=http%3A%2F%2Flocalhost%3A9876`,
                 'Sign in to Elixir',
