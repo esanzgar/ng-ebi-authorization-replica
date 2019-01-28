@@ -6,9 +6,7 @@
 </div>
 <div class="spread separator">
     <button (click)="auth.openLoginWindow({ttl: '1'})">ELIXIR login small
-        window
-        (expire
-        in 1 minute)</button>
+        window (expire in 1 minute)</button>
     <button (click)="auth.openLoginTab()">ELIXIR login new tab (default
         expiration)</button>
     <button (click)="auth.logOut()">Logout</button>
@@ -22,11 +20,11 @@
     </label>
     <label>
         Username*:
-        <input formControlName="username" />
+        <input formControlName="username" required />
     </label>
     <label>
         Password*:
-        <input formControlName="password" />
+        <input formControlName="password" required />
     </label>
     <label>
         Email:
@@ -37,20 +35,29 @@
         <input formControlName="organization" />
     </label>
 </form>
-<button type="button" [disabled]="createAAP.invalid"
-    (click)="createAAPaccount()">Create account</button>
+<div class="warning" *ngIf="createAAPErrors$ | async as errors">
+    <ul>
+        <li *ngFor="let error of errors">{{ error }}</li>
+    </ul>
+</div>
+<button type="button" (click)="createAAPaccount()">Create account</button>
 
 <h3 class="separator">Login AAP account:</h3>
 <form [formGroup]="loginAAP">
     <label>
         Username*:
-        <input formControlName="username" />
+        <input formControlName="username" required />
     </label>
     <label>
         Password*:
-        <input formControlName="password" />
+        <input formControlName="password" required />
     </label>
 </form>
+<div class="warning" *ngIf="loginAAPErrors$ | async as errors">
+    <ul>
+        <li *ngFor="let error of errors">{{ error }}</li>
+    </ul>
+</div>
 <button type="button" [disabled]="loginAAP.invalid"
     (click)="loginAAPaccount()">AAP login</button>
 
@@ -58,17 +65,22 @@
 <form [formGroup]="changePasswordAAP">
     <label>
         Username*:
-        <input formControlName="username" />
+        <input formControlName="username" required />
     </label>
     <label>
         Old password*:
-        <input formControlName="oldPassword" />
+        <input formControlName="oldPassword" required />
     </label>
     <label>
         New password*:
-        <input formControlName="newPassword" />
+        <input formControlName="newPassword" required />
     </label>
 </form>
+<div class="warning" *ngIf="changePasswordAAPErrors$ | async as errors">
+    <ul>
+        <li *ngFor="let error of errors">{{ error }}</li>
+    </ul>
+</div>
 <button type="button" [disabled]="changePasswordAAP.invalid"
     (click)="changePasswordAAPaccount()">AAP login</button>
 
@@ -80,15 +92,19 @@
     <h3 class="separator">Create new domain (group/team):</h3>
     <form [formGroup]="domain">
         <label>
-            Name:
-            <input formControlName="domainName" />
+            Name*:
+            <input formControlName="domainName" required />
         </label>
         <label>
             Description:
             <input formControlName="domainDesc" />
         </label>
     </form>
-
+    <div class="warning" *ngIf="domainErrors$ | async as errors">
+        <ul>
+            <li *ngFor="let error of errors">{{ error }}</li>
+        </ul>
+    </div>
     <button type="button" [disabled]="domain.invalid"
         (click)="createDomain(user.uid)">Create
         domain</button>
@@ -119,8 +135,9 @@
     </ul>
 </div>
 <ng-template #loggedOut>
-    <h2>Please, log in, either through the federated ELIXIR system or through the
-    AAP</h2>
+    <h2>Please, log in, either through the federated ELIXIR system or through
+        the
+        AAP</h2>
 </ng-template>
 
 <h3 class="separator">Advanced handling of tokens:</h3>
@@ -130,4 +147,3 @@
         <p>Expiration date of the token: {{ expiration }}</p>
     </div>
 </div>
-

@@ -7,3 +7,14 @@
     margin-top: 2em;
 }
 
+.warning {
+    color: var(--warning);
+}
+
+.ng-valid[required], .ng-valid.required  {
+  border-left: 5px solid var(--ok);
+}
+
+.ng-invalid:not(form)  {
+  border-left: 5px solid var(--warning);
+}

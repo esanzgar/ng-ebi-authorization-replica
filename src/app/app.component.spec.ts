@@ -273,4 +273,52 @@ describe('AppComponent', () => {
         const compiled = fixture.debugElement.nativeElement;
         expect(compiled.querySelector('h1').textContent).toContain('Auth testing app');
     });
+
+    it('should trigger hasForbiddenSpaces', () => {
+        app.createAAP.reset({
+            username: ' 12345'
+        });
+        expect(app.createAAP.controls['username'].getError('hasForbiddenSpaces')).toBeTruthy();
+
+        app.createAAP.reset({
+            username: '12345'
+        });
+        expect(app.createAAP.controls['username'].getError('hasForbiddenSpaces')).toBeFalsy();
+
+        app.createAAP.reset({
+            username: '12345 '
+        });
+        expect(app.createAAP.controls['username'].getError('hasForbiddenSpaces')).toBeTruthy();
+    });
+
+    it('should trigger hasForbiddenSpaces', () => {
+        app.createAAP.patchValue({
+            username: ' 1 ',
+            email: 'a@',
+            password: '',
+            // tslint:disable-next-line:max-line-length
+            name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        });
+        app.createAAP.controls['username'].markAsTouched();
+        app.createAAP.controls['email'].markAsTouched();
+        app.createAAP.controls['password'].markAsTouched();
+        app.createAAP.controls['name'].markAsTouched();
+
+        const getErrors = spyOn((app as any), '_getErrors').and.callThrough();
+        const result = (app as any)._getErrors(app.createAAP);
+        expect(result).toEqual(
+            ['Name: maximum  255 characters', 'Username: minimum 5 characters',
+             'Username: white space is not allowed at the begining or end', 'Password: required', 'Email: not valid']
+        );
+
+        expect(getErrors).toHaveBeenCalledTimes(1);
+    });
+
+    it('should capitalise correctly', () => {
+        const capitalise = spyOn((app as any), '_capitalise').and.callThrough();
+        const result = (app as any)._capitalise('oldPasswordShouldWork');
+        expect(result).toBe('Old password should work');
+        expect(capitalise).toHaveBeenCalledTimes(1);
+    });
+
 });

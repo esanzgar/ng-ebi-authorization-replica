@@ -6,7 +6,8 @@ import {
 import {
     FormGroup,
     FormBuilder,
-    Validators
+    Validators,
+    ValidatorFn
 } from '@angular/forms';
 import {
     HttpClient,
@@ -47,6 +48,15 @@ interface Domain {
     domainReference: string;
 }
 
+function spacesNoAllowedStartEnd(): ValidatorFn {
+    return (control) => {
+        const hasForbiddenSpaces = /^\s+|\s+$/.test(control.value);
+        return hasForbiddenSpaces ? {
+            hasForbiddenSpaces: 'white space is not allowed at the begining or end'
+        } : null;
+    };
+}
+
 @Component({
     selector: 'auth-root',
     templateUrl: './app.component.html',
@@ -59,49 +69,47 @@ export class AppComponent implements OnInit {
     domains$: Observable < string[] > ;
     managedDomains$: Observable < Domain[] > ;
 
-    // TODO:
-    // * only trigger logout callbacks if it was previously login
-    // * display validation messages
-    // * test forms
-    // * add custom sync validator for username
     createAAP = this._fb.group({
         name: [null, {
-            validators: [Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.minLength(1), Validators.maxLength(255)]
         }],
         username: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255), spacesNoAllowedStartEnd()]
         }],
         password: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.maxLength(255)]
         }],
         email: [null, {
-            validators: [Validators.email, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.email, Validators.maxLength(255)]
         }],
         organization: [null, {
             validators: [Validators.maxLength(255)]
         }],
     });
+    createAAPErrors$!: Observable<string[]>;
 
     loginAAP = this._fb.group({
         username: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255), spacesNoAllowedStartEnd()]
         }],
         password: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.maxLength(255)]
         }],
     });
+    loginAAPErrors$!: Observable<string[]>;
 
     changePasswordAAP = this._fb.group({
         username: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255), spacesNoAllowedStartEnd()]
         }],
         oldPassword: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.maxLength(255)]
         }],
         newPassword: [null, {
-            validators: [Validators.required, Validators.minLength(5), Validators.maxLength(255)]
+            validators: [Validators.required, Validators.maxLength(255)]
         }],
     });
+    changePasswordAAPErrors$!: Observable<string[]>;
 
     domain = this._fb.group({
         domainName: [null, {
@@ -109,6 +117,8 @@ export class AppComponent implements OnInit {
         }],
         domainDesc: [null]
     });
+
+    domainErrors$!: Observable<string[]>;
 
     private readonly _domainsURL: string;
     private readonly _authURL: string;
@@ -160,6 +170,22 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.createAAPErrors$ = this.createAAP.valueChanges.pipe(
+            map( _ => this._getErrors(this.createAAP))
+        );
+
+        this.loginAAPErrors$ = this.loginAAP.valueChanges.pipe(
+            map( _ => this._getErrors(this.loginAAP))
+        );
+
+        this.changePasswordAAPErrors$ = this.changePasswordAAP.valueChanges.pipe(
+            map( _ => this._getErrors(this.changePasswordAAP))
+        );
+
+        this.domainErrors$ = this.domain.valueChanges.pipe(
+            map( _ => this._getErrors(this.domain))
+        );
+
         // Demonstration of register and unregister login events
         this.auth.addLogInEventListener(() => alert('Welcome'));
         this.auth.addLogInEventListener(() => console.log('Welcome'));
@@ -255,5 +281,43 @@ export class AppComponent implements OnInit {
             first(),
             catchError(error => of ([]))
         );
+    }
+
+    private _getErrors(form: FormGroup): string[] {
+        const message: string[] = [];
+
+        Object.entries(form.controls).forEach(([name, control]) => {
+            if (control.errors && control.invalid && (control.dirty || control.touched)) {
+                Object.entries(control.errors).forEach(([error, content]) => {
+                    const namePretty = this._capitalise(name);
+                    switch (error) {
+                        case 'minlength':
+                            message.push(`${namePretty}: minimum ${content['requiredLength']} characters`);
+                            break;
+                        case 'maxlength':
+                            message.push(`${namePretty}: maximum  ${content['requiredLength']} characters`);
+                            break;
+                        case 'required':
+                            message.push(`${namePretty}: required`);
+                            break;
+                        case 'email':
+                            message.push(`${namePretty}: not valid`);
+                            break;
+                        case 'hasForbiddenSpaces':
+                            message.push(`${namePretty}: ${content}`);
+                            break;
+                        default:
+                            console.warn(namePretty, error, content);
+                    }
+                });
+            }
+        });
+
+        return message;
+    }
+
+    private _capitalise(word: string, locale?: string): string {
+        // charAt is problematic with unicode
+        return word.charAt(0).toLocaleUpperCase() + word.slice(1).replace(/([A-Z])/g, (u) => ` ${u.toLocaleLowerCase()}`);
     }
 }
