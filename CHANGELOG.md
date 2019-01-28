@@ -1,4 +1,12 @@
+<a name="1.0.0-beta.6"></a>
+# [1.0.0-beta.6](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.5...1.0.0-beta.6) (2019-01-24)
+
+### Features
+* only calls login and logout callbacks when change of state
+* only emit user if the token has changed (similar to distinctUntilChanged)
+
 <a name="1.0.0-beta.5"></a>
+
 # [1.0.0-beta.5](https://gitlab.ebi.ac.uk/tools-glue/ng-ebi-authorization/compare/1.0.0-beta.4...1.0.0-beta.5) (2019-01-23)
 
 ### Features

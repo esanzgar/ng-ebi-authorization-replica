@@ -565,15 +565,13 @@ describe('AuthService', () => {
         }));
 
         it('must be able call login events', () => {
-            let hasExecuted = false;
-            service.addLogInEventListener(() => hasExecuted = true);
+            let counter = 0;
+            service.addLogInEventListener(() => ++counter);
+            expect(counter).toBe(0);
 
-            expect(hasExecuted).toBe(false);
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
             }));
-
-            expect(user).not.toBeNull('user must be authenticated at this point');
             expect(user).toEqual({
                 uid: 'usr-1',
                 name: 'Ed Munden Gras',
@@ -581,14 +579,40 @@ describe('AuthService', () => {
                 email: 'test@ebi.ac.uk',
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
-            expect(hasExecuted).toBe(true);
+            expect(counter).toBe(1, 'callbacks should execute for first time');
+
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_2
+            }));
+            expect(user).toEqual({
+                uid: 'usr-2',
+                name: 'Alice Wonderland',
+                nickname: '2',
+                email: 'test@ebi.ac.uk',
+                token: VALID_TOKEN_2
+            }, 'user must have correct details');
+            expect(counter).toBe(1, 'callbacks should have not been executed');
+
+            service.logOut();
+            expect(user).toBeNull('user must not be authenticated at this point');
+
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_1
+            }));
+            expect(user).toEqual({
+                uid: 'usr-1',
+                name: 'Ed Munden Gras',
+                nickname: '1',
+                email: 'test@ebi.ac.uk',
+                token: VALID_TOKEN_1
+            }, 'user must have correct details');
+            expect(counter).toBe(2, 'callbacks should be executed again');
         });
 
         it('must be able call logout events (via logout method)', () => {
-            let hasExecuted = false;
-
-            expect(hasExecuted).toBe(false);
-            service.addLogOutEventListener(() => hasExecuted = true);
+            let counter = 0;
+            service.addLogOutEventListener(() => ++counter);
+            expect(counter).toBe(0);
 
             window.dispatchEvent(new MessageEvent('message', {
                 data: VALID_TOKEN_1
@@ -602,10 +626,36 @@ describe('AuthService', () => {
                 email: 'test@ebi.ac.uk',
                 token: VALID_TOKEN_1
             }, 'user must have correct details');
+            expect(counter).toBe(0);
 
-            expect(hasExecuted).toBe(false);
             service.logOut();
-            expect(hasExecuted).toBe(true);
+            expect(counter).toBe(1);
+
+            service.logOut();
+            expect(counter).toBe(1);
+
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_1
+            }));
+            expect(user).not.toBeNull('user must be authenticated at this point');
+
+            expect(counter).toBe(1);
+
+            service.logOut();
+            expect(counter).toBe(2);
+
+            service.logOut();
+            expect(counter).toBe(2);
+        });
+
+        it('must totally remove the token from localStorage on logOut', () => {
+            window.dispatchEvent(new MessageEvent('message', {
+                data: VALID_TOKEN_1
+            }));
+            expect(user).not.toBeNull('user must be authenticated at this point');
+            expect(localStorage.hasOwnProperty(tokenName)).toBe(true);
+
+            service.logOut();
             expect(localStorage.hasOwnProperty(tokenName)).toBe(false);
         });
 

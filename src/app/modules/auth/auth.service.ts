@@ -46,12 +46,12 @@ export interface User {
 export class AuthService implements OnDestroy {
 
     private _user = new BehaviorSubject < User | null > (null);
+    private _currentState: string | null = null; // stores the string token or null otherwise (logout)
 
     private _loginCallbacks: Function[] = [];
     private _logoutCallbacks: Function[] = [];
 
-    private _unlistenLoginMessage: Function;
-    private _unlistenChangesFromOtherWindows: Function;
+    private _unlistenEvents: Function[];
 
     private _timeoutID: number | null = null;
 
@@ -88,15 +88,17 @@ export class AuthService implements OnDestroy {
         }
 
         const renderer = this._rendererFactory.createRenderer(null, null);
-        this._unlistenLoginMessage = this._listenLoginMessage(renderer);
-        this._unlistenChangesFromOtherWindows = this._listenChangesFromOtherWindows(renderer);
+        this._unlistenEvents = [
+            this._listenLoginMessage(renderer),
+            this._listenChangesFromOtherWindows(renderer)
+        ];
 
+        this._currentState = null;
         this._updateUser(); // TODO: experiment with setTimeOut
     }
 
     public ngOnDestroy() {
-        this._unlistenLoginMessage();
-        this._unlistenChangesFromOtherWindows();
+        this._unlistenEvents.forEach(fn => fn());
     }
 
     public user(): Observable < User | null > {
@@ -356,7 +358,7 @@ export class AuthService implements OnDestroy {
             tap(token => {
                 this._storageRemover();
                 this._storageUpdater(token);
-                this._updateUser(false);
+                this._updateUser();
 
                 // Triggers updating other windows
                 this._commKeyUpdater();
@@ -481,21 +483,25 @@ export class AuthService implements OnDestroy {
         return event.origin === this._appURL;
     }
 
-    private _updateUser(invokeLoginCallbacks = true) {
+    private _updateUser() {
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
 
         if (this._tokenService.isTokenValid()) {
+
+            const token = this._tokenService.getToken() as string;
             this._user.next({
-                uid: < string > this._getClaim('sub'),
-                name: < string > this._getClaim('name'),
-                nickname: < string > this._getClaim('nickname'),
-                email: < string > this._getClaim('email'),
-                token: < string > this._tokenService.getToken()
+                uid: this._getClaim('sub'),
+                name: this._getClaim('name'),
+                nickname: this._getClaim('nickname'),
+                email: this._getClaim('email'),
+                token
             });
 
-            if (invokeLoginCallbacks) {
+            if (this._currentState === null) {
+                // this._loginCallbacks is an empty list when first called from the constructor.
+                // Latter it could be filled as clients of the library call `this.addLogInEventListener(myfunction)`
                 this._loginCallbacks.forEach(callback => callback());
             }
 
@@ -504,15 +510,24 @@ export class AuthService implements OnDestroy {
             // Coercing dates to numbers with the unary operator '+'
             const delay = +expireDate - +new Date();
             this._timeoutID = window.setTimeout(() => this.logOut(), delay);
+
+            if (this._currentState !== token) {
+                this._currentState = token;
+            }
         } else {
             this._storageRemover(); // Cleanup possible left behind token
-            this._user.next(null);
-            this._logoutCallbacks.forEach(callback => callback());
+            if (this._currentState !== null) {
+                // this._logoutCallbacks is an empty list when first called from the constructor.
+                // Latter it could be filled as clients of the library call `this.addLogOutEventListener(myfunction)`
+                this._logoutCallbacks.forEach(callback => callback());
+                this._user.next(null);
+            }
+            this._currentState = null;
         }
     }
 
-    private _getClaim(claim: string): string | null {
-        return this._tokenService.getClaim < string, null > (claim, null);
+    private _getClaim(claim: string): string {
+        return this._tokenService.getClaim < string, string > (claim, '');
     }
 
     private _deprecationWarning(oldMethod: string, newMethod: string) {
