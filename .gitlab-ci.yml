@@ -27,7 +27,8 @@ lint:
 
 test:
   stage: test
-  image: esanzgar/node-chromium
+  image: esanzgar/node-chromium:10-node-chromium
+  # image: esanzgar/node-chromium
   tags: [docker]
   script:
     - yarn test:sr:chromium

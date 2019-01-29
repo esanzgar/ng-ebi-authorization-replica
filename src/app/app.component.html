@@ -24,11 +24,11 @@
     </label>
     <label>
         Password*:
-        <input formControlName="password" required />
+        <input formControlName="password" type="password" required />
     </label>
     <label>
         Email:
-        <input formControlName="email" />
+        <input formControlName="email" type="email" />
     </label>
     <label>
         Organization:
@@ -50,7 +50,7 @@
     </label>
     <label>
         Password*:
-        <input formControlName="password" required />
+        <input formControlName="password" type="password" required />
     </label>
 </form>
 <div class="warning" *ngIf="loginAAPErrors$ | async as errors">
@@ -69,11 +69,11 @@
     </label>
     <label>
         Old password*:
-        <input formControlName="oldPassword" required />
+        <input formControlName="oldPassword" type="password" required />
     </label>
     <label>
         New password*:
-        <input formControlName="newPassword" required />
+        <input formControlName="newPassword" type="password" required />
     </label>
 </form>
 <div class="warning" *ngIf="changePasswordAAPErrors$ | async as errors">
