@@ -21,7 +21,7 @@ import {
 
 import {
     environment
-} from 'src/environments/environment';
+} from '../environments/environment';
 
 // Components
 import {

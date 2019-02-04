@@ -29,7 +29,7 @@ import {
 import {
     AAP_CONFIG,
     AuthConfig
-} from 'src/app/modules/auth/auth.config';
+} from './modules/auth/auth.config';
 
 import {
     AuthService,
