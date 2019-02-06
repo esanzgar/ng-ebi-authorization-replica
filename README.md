@@ -5,6 +5,8 @@ on EBI's Authentication and Authorization Profile (AAP) infrastructure. After
 successful login, a JWT token is stored on the browser (via cookie, local or
 session storage).
 
+[See example in stackblitz](https://stackblitz.com/github/esanzgar/ng-ebi-authorization-replica).
+
 ## Installation
 
 To install this library, run:
