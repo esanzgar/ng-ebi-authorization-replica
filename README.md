@@ -5,6 +5,8 @@ on EBI's Authentication and Authorization Profile (AAP) infrastructure. After
 successful login, a JWT token is stored on the browser (via cookie, local or
 session storage).
 
+Because of CORS, if the library is tested against 'explore.api.aai.ebi.ac.uk' origin should be localhost:4200.
+
 [See example in stackblitz](https://stackblitz.com/github/esanzgar/ng-ebi-authorization-replica).
 
 ## Installation
