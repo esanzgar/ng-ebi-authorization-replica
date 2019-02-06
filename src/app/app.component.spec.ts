@@ -20,7 +20,7 @@ import {
 
 import {
     AuthService
-} from './modules/auth/auth.service';
+} from '../auth/auth.service';
 
 import {
     AppComponent

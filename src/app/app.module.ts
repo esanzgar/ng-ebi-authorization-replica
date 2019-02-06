@@ -11,7 +11,7 @@ import {
 } from '@angular/common/http';
 import {
     AuthModule
-} from './modules/auth/auth.module';
+} from '../auth/auth.module';
 import {
     JwtModule
 } from '@auth0/angular-jwt';

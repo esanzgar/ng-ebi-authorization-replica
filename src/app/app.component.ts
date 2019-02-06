@@ -29,15 +29,15 @@ import {
 import {
     AAP_CONFIG,
     AuthConfig
-} from './modules/auth/auth.config';
+} from '../auth/auth.config';
 
 import {
     AuthService,
     User
-} from './modules/auth/auth.service';
+} from '../auth/auth.service';
 import {
     TokenService
-} from './modules/auth/token.service';
+} from '../auth/token.service';
 import {
     JwtHelperService,
 } from '@auth0/angular-jwt';

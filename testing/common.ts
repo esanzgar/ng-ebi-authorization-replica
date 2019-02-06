@@ -14,7 +14,7 @@ import {
 } from '@auth0/angular-jwt';
 import {
     AuthModule
-} from 'src/app/modules/auth/auth.module';
+} from 'src/auth/auth.module';
 
 export const tokenName = 'jwt_token';
 export function getToken(): string {
