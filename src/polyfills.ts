@@ -44,6 +44,8 @@
 /** Evergreen browsers require these. **/
 // Used for reflect-metadata in JIT. If you use AOT (and only Angular decorators), you can remove.
 
+/** Necessary for stackblitz (https://github.com/stackblitz/core/issues/758) **/
+import 'core-js/es7/reflect';
 
 /**
  * Required to support Web Animations `@angular/platform-browser/animations`.
