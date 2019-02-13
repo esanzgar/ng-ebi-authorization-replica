@@ -6,6 +6,7 @@ variables:
 stages:
   - test
   - build
+  - docs
 
 before_script:
   - yarn install --frozen-lockfile --cache-folder .yarn
@@ -34,18 +35,6 @@ test:
     paths:
       - coverage/
 
-pages:
-  stage: test
-  image: node:alpine
-  tags: [docker]
-  script:
-    - yarn docs
-    - mkdir public
-    - cp -r docs/* public/
-  artifacts:
-    paths:
-      - public
-
 build:
   stage: build
   image: node:alpine
@@ -56,5 +45,19 @@ build:
     name: "${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}"
     paths:
       - dist-lib/
+  only:
+    - master
+
+pages:
+  stage: docs
+  image: node:alpine
+  tags: [docker]
+  script:
+    - yarn docs
+    - mkdir public
+    - cp -r docs/* public/
+  artifacts:
+    paths:
+      - public
   only:
     - master
