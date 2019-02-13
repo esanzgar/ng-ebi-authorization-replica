@@ -16,7 +16,8 @@ module.exports = function (config) {
       'karma-coverage-istanbul-reporter',
       '@angular-devkit/build-angular/plugins/karma'
     ],
-    client:{
+    files: [],
+    client: {
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
     coverageIstanbulReporter: {
